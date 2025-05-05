@@ -38,12 +38,22 @@ export async function POST(request: Request) {
 
     // Tạo JWT
     const token = jwt.sign(
-      { email: user.email },
+      { email: user.email, role: user.role || 'user' },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '1h' }
     );
 
-    return NextResponse.json({ token }, { status: 200 });
+    // Trả về token và thông tin người dùng
+    return NextResponse.json(
+      {
+        token,
+        user: {
+          email: user.email,
+          role: user.role || 'user', // Mặc định là 'user' nếu không có role
+        },
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(

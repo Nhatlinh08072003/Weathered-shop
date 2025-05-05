@@ -30,21 +30,33 @@ export async function POST(request: Request) {
     // Mã hóa mật khẩu
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Lưu người dùng vào MongoDB
-    const result = await usersCollection.insertOne({
+    // Lưu người dùng vào MongoDB với role mặc định là 'user'
+    const newUser = {
       email,
       password: hashedPassword,
+      role: 'user', // Mặc định role là 'user'
       createdAt: new Date(),
-    });
+    };
+    await usersCollection.insertOne(newUser);
 
     // Tạo JWT
     const token = jwt.sign(
-      { email },
+      { email, role: newUser.role },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '1h' }
     );
 
-    return NextResponse.json({ token }, { status: 201 });
+    // Trả về token và thông tin người dùng
+    return NextResponse.json(
+      {
+        token,
+        user: {
+          email: newUser.email,
+          role: newUser.role,
+        },
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Register error:', error);
     return NextResponse.json(
