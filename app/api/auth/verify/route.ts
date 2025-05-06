@@ -8,7 +8,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: 'No token provided' }, { status: 401 });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secure-secret-key');
     return NextResponse.json({ valid: true, user: decoded }, { status: 200 });
   } catch (error) {
     console.error('Verify token error:', error);

@@ -1,3 +1,4 @@
+
 // "use client";
 
 // import { useState, useEffect, useRef } from 'react';
@@ -9,6 +10,20 @@
 // interface User {
 //   email: string;
 //   role: 'admin' | 'user';
+// }
+
+// // Định nghĩa interface cho danh mục và bộ sưu tập
+// interface Category {
+//   _id: string;
+//   name: string;
+//   collection: string;
+//   createdAt: string;
+// }
+
+// interface Collection {
+//   _id: string;
+//   name: string;
+//   createdAt: string;
 // }
 
 // // Định nghĩa interface cho nội dung đa ngôn ngữ
@@ -47,13 +62,26 @@
 //   const [formData, setFormData] = useState({ email: '', password: '', confirmPassword: '' });
 //   const [error, setError] = useState('');
 //   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+//   const [categories, setCategories] = useState<Category[]>([]);
+//   const [collections, setCollections] = useState<Collection[]>([]);
+//   const [loading, setLoading] = useState(true);
 //   const headerRef = useRef<HTMLElement>(null);
 //   const [searchValue, setSearchValue] = useState('');
 //   const [announcementIndex, setAnnouncementIndex] = useState(0);
 //   const router = useRouter();
 
+//   // Hàm tạo slug từ tên
+//   const createSlug = (name: string) => {
+//     return name
+//       .toLowerCase()
+//       .normalize('NFD')
+//       .replace(/[\u0300-\u036f]/g, '')
+//       .replace(/\s+/g, '-')
+//       .replace(/[^\w-]+/g, '');
+//   };
+
 //   // Nội dung đa ngôn ngữ
-//   const content: Content = {
+//   const getContent = (categories: Category[], collections: Collection[]): Content => ({
 //     vi: {
 //       announcement: [
 //         'MIỄN PHÍ VẬN CHUYỂN CHO ĐƠN HÀNG TRÊN 500K VND',
@@ -66,20 +94,19 @@
 //           href: '/shop',
 //           submenu: [
 //             { name: 'Tất cả sản phẩm', href: '/shop/all' },
-//             { name: 'Áo', href: '/shop/tops' },
-//             { name: 'Quần', href: '/shop/bottoms' },
-//             { name: 'Đầm', href: '/shop/dresses' },
-//             { name: 'Phụ kiện', href: '/shop/accessories' },
+//             ...categories.map((category) => ({
+//               name: category.name,
+//               href: `/shop/${createSlug(category.name)}`,
+//             })),
 //           ],
 //         },
 //         {
 //           name: 'BỘ SƯU TẬP',
 //           href: '/collections',
-//           submenu: [
-//             { name: 'Xuân Hè 2025', href: '/collections/spring-summer-2025' },
-//             { name: 'Thu Đông 2024', href: '/collections/fall-winter-2024' },
-//             { name: 'Capsule', href: '/collections/capsule' },
-//           ],
+//           submenu: collections.map((collection) => ({
+//             name: collection.name,
+//             href: `/collections/${createSlug(collection.name)}`,
+//           })),
 //         },
 //         { name: 'VINTAGE', href: '/vintage' },
 //         { name: 'ARCHIVE', href: '/archive' },
@@ -110,20 +137,19 @@
 //           href: '/shop',
 //           submenu: [
 //             { name: 'All Products', href: '/shop/all' },
-//             { name: 'Tops', href: '/shop/tops' },
-//             { name: 'Bottoms', href: '/shop/bottoms' },
-//             { name: 'Dresses', href: '/shop/dresses' },
-//             { name: 'Accessories', href: '/shop/accessories' },
+//             ...categories.map((category) => ({
+//               name: category.name, // Giữ nguyên tên tiếng Việt, có thể dịch nếu cần
+//               href: `/shop/${createSlug(category.name)}`,
+//             })),
 //           ],
 //         },
 //         {
 //           name: 'COLLECTIONS',
 //           href: '/collections',
-//           submenu: [
-//             { name: 'Spring Summer 2025', href: '/collections/spring-summer-2025' },
-//             { name: 'Fall Winter 2024', href: '/collections/fall-winter-2024' },
-//             { name: 'Capsule', href: '/collections/capsule' },
-//           ],
+//           submenu: collections.map((collection) => ({
+//             name: collection.name, // Giữ nguyên tên, có thể dịch nếu cần
+//             href: `/collections/${createSlug(collection.name)}`,
+//           })),
 //         },
 //         { name: 'VINTAGE', href: '/vintage' },
 //         { name: 'ARCHIVE', href: '/archive' },
@@ -142,8 +168,49 @@
 //       logout: 'LOGOUT',
 //       welcome: 'WELCOME',
 //     },
-//   };
+//   });
 
+//   // Lấy danh mục và bộ sưu tập từ API
+//   useEffect(() => {
+//     const fetchData = async () => {
+//       setLoading(true);
+//       try {
+//         // Lấy danh mục
+//         const categoriesResponse = await fetch('/api/categories', {
+//           headers: {
+//             Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+//           },
+//         });
+//         const categoriesData = await categoriesResponse.json();
+//         if (categoriesResponse.ok) {
+//           setCategories(categoriesData.categories || []);
+//         } else {
+//           console.error('Failed to fetch categories:', categoriesData.message);
+//         }
+
+//         // Lấy bộ sưu tập
+//         const collectionsResponse = await fetch('/api/collections', {
+//           headers: {
+//             Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+//           },
+//         });
+//         const collectionsData = await collectionsResponse.json();
+//         if (collectionsResponse.ok) {
+//           setCollections(collectionsData.collections || []);
+//         } else {
+//           console.error('Failed to fetch collections:', collectionsData.message);
+//         }
+//       } catch (error) {
+//         console.error('Error fetching data:', error);
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchData();
+//   }, []);
+
+//   // Xác minh token và ngôn ngữ
 //   useEffect(() => {
 //     const verifyToken = async () => {
 //       const token = localStorage.getItem('token');
@@ -199,7 +266,7 @@
 //       setAnnouncementIndex((prev) => (prev + 1) % content[language].announcement.length);
 //     }, 5000);
 //     return () => clearInterval(timer);
-//   }, [language, content]);
+//   }, [language]);
 
 //   useEffect(() => {
 //     const handleClickOutside = (event: MouseEvent) => {
@@ -219,7 +286,7 @@
 //       }
 //     };
 //     document.addEventListener('mousedown', handleClickOutside);
-//     return () => document.removeEventListener('mousedown', handleClickOutside);
+//     return () => document.addEventListener('mousedown', handleClickOutside);
 //   }, [visibleSubmenu, isUserDropdownOpen]);
 
 //   const toggleMenu = () => {
@@ -346,6 +413,9 @@
 //     router.push('/');
 //   };
 
+//   // Tạo content dựa trên dữ liệu từ API
+//   const content = getContent(categories, collections);
+
 //   return (
 //     <header
 //       ref={headerRef}
@@ -418,56 +488,60 @@
 
 //             {/* Navigation */}
 //             <nav className="flex items-center space-x-8">
-//               {content[language].navItems.map((item, index) => (
-//                 <div key={index} className="relative group">
-//                   {item.submenu ? (
-//                     <div className="relative">
-//                       <button
-//                         className="group flex items-center font-light text-sm tracking-widest text-gray-700 hover:text-black transition-colors duration-300 transform"
-//                         onClick={() => handleSubmenuToggle(index)}
+//               {loading ? (
+//                 <span className="text-gray-600 font-light">Đang tải...</span>
+//               ) : (
+//                 content[language].navItems.map((item, index) => (
+//                   <div key={index} className="relative group">
+//                     {item.submenu ? (
+//                       <div className="relative">
+//                         <button
+//                           className="group flex items-center font-light text-sm tracking-widest text-gray-700 hover:text-black transition-colors duration-300 transform"
+//                           onClick={() => handleSubmenuToggle(index)}
+//                         >
+//                           <span className="relative inline-block">
+//                             {item.name}
+//                             <span className="absolute -bottom-1 left-0 w-0 h-[0.5px] bg-black group-hover:w-full transition-all duration-300 ease-in-out"></span>
+//                           </span>
+//                           <ChevronDown
+//                             size={16}
+//                             className={`ml-1 transition-transform duration-300 ${
+//                               visibleSubmenu === index ? 'rotate-180' : ''
+//                             }`}
+//                           />
+//                         </button>
+//                         {visibleSubmenu === index && (
+//                           <div className="absolute top-full left-0 mt-1 py-3 px-4 bg-white shadow-lg rounded-md min-w-[180px] z-50 border border-gray-100 animate-fade-in-down">
+//                             <div className="absolute top-0 left-5 -mt-1 w-2 h-2 bg-white border-t border-l border-gray-100 transform rotate-45"></div>
+//                             <div className="flex flex-col space-y-2">
+//                               {item.submenu.map((subItem, subIndex) => (
+//                                 <Link
+//                                   key={subIndex}
+//                                   href={subItem.href}
+//                                   className="text-sm text-gray-700 hover:text-black hover:pl-1 transition-all duration-300 whitespace-nowrap"
+//                                   onClick={() => setVisibleSubmenu(null)}
+//                                 >
+//                                   {subItem.name}
+//                                 </Link>
+//                               ))}
+//                             </div>
+//                           </div>
+//                         )}
+//                       </div>
+//                     ) : (
+//                       <Link
+//                         href={item.href}
+//                         className="group relative font-light text-sm tracking-widest text-gray-700 hover:text-black transition-colors duration-300 transform"
 //                       >
 //                         <span className="relative inline-block">
 //                           {item.name}
 //                           <span className="absolute -bottom-1 left-0 w-0 h-[0.5px] bg-black group-hover:w-full transition-all duration-300 ease-in-out"></span>
 //                         </span>
-//                         <ChevronDown
-//                           size={16}
-//                           className={`ml-1 transition-transform duration-300 ${
-//                             visibleSubmenu === index ? 'rotate-180' : ''
-//                           }`}
-//                         />
-//                       </button>
-//                       {visibleSubmenu === index && (
-//                         <div className="absolute top-full left-0 mt-1 py-3 px-4 bg-white shadow-lg rounded-md min-w-[180px] z-50 border border-gray-100 animate-fade-in-down">
-//                           <div className="absolute top-0 left-5 -mt-1 w-2 h-2 bg-white border-t border-l border-gray-100 transform rotate-45"></div>
-//                           <div className="flex flex-col space-y-2">
-//                             {item.submenu.map((subItem, subIndex) => (
-//                               <Link
-//                                 key={subIndex}
-//                                 href={subItem.href}
-//                                 className="text-sm text-gray-700 hover:text-black hover:pl-1 transition-all duration-300 whitespace-nowrap"
-//                                 onClick={() => setVisibleSubmenu(null)}
-//                               >
-//                                 {subItem.name}
-//                               </Link>
-//                             ))}
-//                           </div>
-//                         </div>
-//                       )}
-//                     </div>
-//                   ) : (
-//                     <Link
-//                       href={item.href}
-//                       className="group relative font-light text-sm tracking-widest text-gray-700 hover:text-black transition-colors duration-300 transform"
-//                     >
-//                       <span className="relative inline-block">
-//                         {item.name}
-//                         <span className="absolute -bottom-1 left-0 w-0 h-[0.5px] bg-black group-hover:w-full transition-all duration-300 ease-in-out"></span>
-//                       </span>
-//                     </Link>
-//                   )}
-//                 </div>
-//               ))}
+//                       </Link>
+//                     )}
+//                   </div>
+//                 ))
+//               )}
 //               {user && user.role === 'admin' && (
 //                 <Link
 //                   href="/admin"
@@ -758,50 +832,54 @@
 //             </div>
 //             <div className="flex-1 px-6 py-8">
 //               <nav className="space-y-6 mb-12">
-//                 {content[language].navItems.map((item, index) => (
-//                   <div key={index} className="overflow-hidden">
-//                     {item.submenu ? (
-//                       <div className="border-b border-gray-100 pb-4">
-//                         <button
-//                           className="flex items-center justify-between w-full text-left text-gray-800 font-light text-lg tracking-wide transition-colors duration-300"
-//                           onClick={() => handleSubmenuToggle(index)}
-//                         >
-//                           <span>{item.name}</span>
-//                           <ChevronDown
-//                             size={18}
-//                             className={`transition-transform duration-300 ${
-//                               visibleSubmenu === index ? 'rotate-180' : ''
+//                 {loading ? (
+//                   <span className="text-gray-600 font-light">Đang tải...</span>
+//                 ) : (
+//                   content[language].navItems.map((item, index) => (
+//                     <div key={index} className="overflow-hidden">
+//                       {item.submenu ? (
+//                         <div className="border-b border-gray-100 pb-4">
+//                           <button
+//                             className="flex items-center justify-between w-full text-left text-gray-800 font-light text-lg tracking-wide transition-colors duration-300"
+//                             onClick={() => handleSubmenuToggle(index)}
+//                           >
+//                             <span>{item.name}</span>
+//                             <ChevronDown
+//                               size={18}
+//                               className={`transition-transform duration-300 ${
+//                                 visibleSubmenu === index ? 'rotate-180' : ''
+//                               }`}
+//                             />
+//                           </button>
+//                           <div
+//                             className={`mt-3 pl-4 space-y-3 overflow-hidden transition-all duration-500 ${
+//                               visibleSubmenu === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
 //                             }`}
-//                           />
-//                         </button>
-//                         <div
-//                           className={`mt-3 pl-4 space-y-3 overflow-hidden transition-all duration-500 ${
-//                             visibleSubmenu === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-//                           }`}
-//                         >
-//                           {item.submenu.map((subItem, subIndex) => (
-//                             <Link
-//                               key={subIndex}
-//                               href={subItem.href}
-//                               className="block text-gray-600 hover:text-black text-base transition-colors duration-300"
-//                               onClick={closeMenu}
-//                             >
-//                               {subItem.name}
-//                             </Link>
-//                           ))}
+//                           >
+//                             {item.submenu.map((subItem, subIndex) => (
+//                               <Link
+//                                 key={subIndex}
+//                                 href={subItem.href}
+//                                 className="block text-gray-600 hover:text-black text-base transition-colors duration-300"
+//                                 onClick={closeMenu}
+//                               >
+//                                 {subItem.name}
+//                               </Link>
+//                             ))}
+//                           </div>
 //                         </div>
-//                       </div>
-//                     ) : (
-//                       <Link
-//                         href={item.href}
-//                         className="block text-gray-800 hover:text-black font-light text-lg tracking-wide border-b border-gray-100 pb-4 transition-colors duration-300"
-//                         onClick={closeMenu}
-//                       >
-//                         {item.name}
-//                       </Link>
-//                     )}
-//                   </div>
-//                 ))}
+//                       ) : (
+//                         <Link
+//                           href={item.href}
+//                           className="block text-gray-800 hover:text-black font-light text-lg tracking-wide border-b border-gray-100 pb-4 transition-colors duration-300"
+//                           onClick={closeMenu}
+//                         >
+//                           {item.name}
+//                         </Link>
+//                       )}
+//                     </div>
+//                   ))
+//                 )}
 //                 <Link
 //                   href="/contact"
 //                   className="block text-gray-800 hover:text-black font-light text-lg tracking-wide border-b border-gray-100 pb-4 transition-colors duration-300"
@@ -1056,7 +1134,7 @@ const Header = () => {
           submenu: [
             { name: 'All Products', href: '/shop/all' },
             ...categories.map((category) => ({
-              name: category.name, // Giữ nguyên tên tiếng Việt, có thể dịch nếu cần
+              name: category.name,
               href: `/shop/${createSlug(category.name)}`,
             })),
           ],
@@ -1065,7 +1143,7 @@ const Header = () => {
           name: 'COLLECTIONS',
           href: '/collections',
           submenu: collections.map((collection) => ({
-            name: collection.name, // Giữ nguyên tên, có thể dịch nếu cần
+            name: collection.name,
             href: `/collections/${createSlug(collection.name)}`,
           })),
         },
@@ -1179,12 +1257,14 @@ const Header = () => {
     };
   }, [isMenuOpen, isAuthModalOpen]);
 
+  const content = getContent(categories, collections);
+
   useEffect(() => {
     const timer = setInterval(() => {
       setAnnouncementIndex((prev) => (prev + 1) % content[language].announcement.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, [language]);
+  }, [language, content]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -1204,7 +1284,7 @@ const Header = () => {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [visibleSubmenu, isUserDropdownOpen]);
 
   const toggleMenu = () => {
@@ -1330,9 +1410,6 @@ const Header = () => {
     setIsAuthModalOpen(false);
     router.push('/');
   };
-
-  // Tạo content dựa trên dữ liệu từ API
-  const content = getContent(categories, collections);
 
   return (
     <header
