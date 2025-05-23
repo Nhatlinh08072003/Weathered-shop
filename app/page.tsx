@@ -1,85 +1,1488 @@
+
+// "use client";
+
+// import { useState, useEffect, useRef, useMemo } from "react";
+// import Link from "next/link";
+// import Image from "next/image";
+// import { motion, AnimatePresence } from "framer-motion";
+// import Head from "next/head";
+// import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+// import { useCart } from "@/lib/CartContext"; // Import useCart from CartContext
+
+// // Define Product interface
+// interface Product {
+//   id: string;
+//   name: string;
+//   image: string;
+//   size: string;
+//   description: string;
+//   category: string;
+//   collection?: string;
+//   price: number;
+//   discount?: number | null;
+//   images: string[];
+//   createdAt: string;
+//   isNew?: boolean;
+//   isFeatured?: boolean;
+// }
+
+// // Banner slider data
+// const banners = [
+//   {
+//     src: "/images/banner1.png",
+//     title: "Refined Elegance",
+//     description: "Curated collections that epitomize modern sophistication",
+//     buttonText: "Discover Now",
+//     link: "/collections/new",
+//   },
+//   {
+//     src: "/images/banner2.png",
+//     title: "Monochrome Mastery",
+//     description: "Bold contrasts that define contemporary aesthetics",
+//     buttonText: "Explore",
+//     link: "/collections/summer",
+//   },
+//   {
+//     src: "/images/banner3.png",
+//     title: "Limited Edition",
+//     description: "Exclusive pieces available for a limited time only",
+//     buttonText: "Shop Sale",
+//     link: "/collections/sale",
+//   },
+// ];
+
+// // Category showcase data
+// const categories = [
+//   {
+//     title: "Archive Collection",
+//     image: "/images/archive.png",
+//     link: "/collections/archive",
+//     description: "Timeless pieces inspired by vintage aesthetics",
+//   },
+//   {
+//     title: "Blockcore Collection",
+//     image: "/images/blockcore.png",
+//     link: "/collections/blockcore",
+//     description: "Bold, modern designs for the urban trendsetter",
+//   },
+//   {
+//     title: "Vintage Collection",
+//     image: "/images/vintage.png",
+//     link: "/collections/vintage",
+//     description: "Classic styles reimagined for today's fashion",
+//   },
+// ];
+
+// // Testimonials data
+// const testimonials = [
+//   {
+//     name: "Sophie Laurent",
+//     role: "Fashion Blogger",
+//     quote: "The attention to detail and quality of fabrics is unmatched. Every piece tells a story of craftsmanship.",
+//     avatar: "/api/placeholder/60/60",
+//   },
+//   {
+//     name: "Alex Chen",
+//     role: "Creative Director",
+//     quote: "This brand has redefined what minimalist elegance means in contemporary fashion. Simply outstanding.",
+//     avatar: "/api/placeholder/60/60",
+//   },
+//   {
+//     name: "Emma Rodriguez",
+//     role: "Style Influencer",
+//     quote: "The designs have a timeless quality that transcends seasonal trends. A must-have for any wardrobe.",
+//     avatar: "/api/placeholder/60/60",
+//   },
+// ];
+
+// // Skeleton component
+// const ProductSkeleton = () => (
+//   <div className="animate-pulse group">
+//     <div className="aspect-[2/3] bg-gray-200 rounded-lg"></div>
+//     <div className="mt-4">
+//       <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+//       <div className="h-3 bg-gray-200 rounded w-1/2 mt-2"></div>
+//     </div>
+//   </div>
+// );
+
+// function HomePage() {
+//   const [currentIndex, setCurrentIndex] = useState(0);
+//   const [testimonialIndex, setTestimonialIndex] = useState(0);
+//   const [cartNotification, setCartNotification] = useState(false);
+//   const [products, setProducts] = useState<Product[]>([]);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState<string | null>(null);
+//   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
+//   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+//   const [activeTab, setActiveTab] = useState("all");
+//   const [quantity, setQuantity] = useState(1);
+//   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
+//   const [showBackToTop, setShowBackToTop] = useState(false);
+//   const bannerRef = useRef<HTMLDivElement>(null);
+//   const [language, setLanguage] = useState<'vi' | 'en'>('vi');
+//   const { addToCart } = useCart(); // Use CartContext
+
+//   // Animation variants
+//   const fadeInUp = {
+//     initial: { y: 30, opacity: 0 },
+//     animate: { y: 0, opacity: 1 },
+//     transition: { duration: 0.6, ease: "easeOut" },
+//   };
+
+//   const productHover = {
+//     hover: {
+//       scale: 1.03,
+//       transition: { duration: 0.4, ease: "easeOut" },
+//     },
+//   };
+
+//   const staggerChildren = {
+//     hidden: { opacity: 0 },
+//     show: {
+//       opacity: 1,
+//       transition: {
+//         staggerChildren: 0.1,
+//       },
+//     },
+//   };
+
+//   const fadeInItem = {
+//     hidden: { opacity: 0, y: 20 },
+//     show: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+//   };
+
+//   // Sync language
+//   useEffect(() => {
+//     const savedLanguage = localStorage.getItem('language') as 'vi' | 'en' | null;
+//     if (savedLanguage) {
+//       setLanguage(savedLanguage);
+//     }
+
+//     const handleLanguageChange = (event: CustomEvent) => {
+//       setLanguage(event.detail.language);
+//     };
+
+//     window.addEventListener('languageChange', handleLanguageChange as EventListener);
+//     return () => window.removeEventListener('languageChange', handleLanguageChange as EventListener);
+//   }, []);
+
+//   // Handle scroll
+//   useEffect(() => {
+//     const handleScroll = () => {
+//       setShowBackToTop(window.scrollY > 300);
+//     };
+//     window.addEventListener("scroll", handleScroll);
+//     return () => window.removeEventListener("scroll", handleScroll);
+//   }, []);
+
+//   // Fetch products
+//   useEffect(() => {
+//     async function fetchProducts() {
+//       try {
+//         setLoading(true);
+//         const response = await fetch("/api/products");
+//         if (!response.ok) throw new Error("Failed to fetch products");
+//         const data = await response.json();
+//         const mappedProducts: Product[] = data.products.map((product: any) => ({
+//           id: product._id.toString(),
+//           name: product.name,
+//           image: product.images[0] || "/placeholder/300x400",
+//           size: product.size,
+//           description: product.description,
+//           category: product.category,
+//           collection: product.collection,
+//           price: product.price,
+//           discount: product.discount,
+//           images: product.images,
+//           createdAt: product.createdAt,
+//           isNew: new Date(product.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+//           isFeatured: !!product.discount,
+//         }));
+//         setProducts(mappedProducts);
+//       } catch (err) {
+//         setError("Failed to load products");
+//       } finally {
+//         setLoading(false);
+//       }
+//     }
+//     fetchProducts();
+//   }, []);
+
+//   // Autoplay banner
+//   useEffect(() => {
+//     const interval = setInterval(() => {
+//       setCurrentIndex((prev) => (prev + 1) % banners.length);
+//     }, 6000);
+//     return () => clearInterval(interval);
+//   }, []);
+
+//   // Autoplay testimonials
+//   useEffect(() => {
+//     const interval = setInterval(() => {
+//       setTestimonialIndex((prev) => (prev + 1) % testimonials.length);
+//     }, 5000);
+//     return () => clearInterval(interval);
+//   }, []);
+
+//   // Preload images
+//   useEffect(() => {
+//     banners.forEach((banner) => {
+//       const img = new window.Image();
+//       img.src = banner.src;
+//     });
+//     categories.forEach((category) => {
+//       const img = new window.Image();
+//       img.src = category.image;
+//     });
+//   }, []);
+
+//   // Memoized filtered products
+//   const filteredProducts = useMemo(() => {
+//     return activeTab === "all"
+//       ? products
+//       : products.filter((product) =>
+//           activeTab === "featured"
+//             ? product.isFeatured
+//             : product.category?.toLowerCase() === activeTab.toLowerCase()
+//         );
+//   }, [activeTab, products]);
+
+//   // Handlers
+//   const toggleWishlist = (productId: string, e?: React.MouseEvent) => {
+//     e?.preventDefault();
+//     e?.stopPropagation();
+//     setWishlist((prev) => {
+//       const newWishlist = new Set(prev);
+//       if (newWishlist.has(productId)) {
+//         newWishlist.delete(productId);
+//       } else {
+//         newWishlist.add(productId);
+//       }
+//       return newWishlist;
+//     });
+//   };
+
+//   const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % banners.length);
+//   const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
+//   const goToSlide = (index: number) => setCurrentIndex(index);
+
+//   const addToCartHandler = (product: Product, quantity: number = 1, e?: React.MouseEvent) => {
+//     e?.preventDefault();
+//     e?.stopPropagation();
+//     addToCart({
+//       id: product.id,
+//       name: product.name,
+//       price: product.price,
+//       image: product.image,
+//       quantity,
+//       size: ""
+//     });
+//     setCartNotification(true);
+//     setTimeout(() => setCartNotification(false), 3000);
+//   };
+
+//   const openQuickView = (product: Product, e?: React.MouseEvent) => {
+//     e?.preventDefault();
+//     e?.stopPropagation();
+//     setQuickViewProduct(product);
+//     setQuantity(1);
+//     document.body.style.overflow = "hidden";
+//   };
+
+//   const closeQuickView = () => {
+//     setQuickViewProduct(null);
+//     document.body.style.overflow = "auto";
+//   };
+
+//   const decreaseQuantity = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+//   const increaseQuantity = () => setQuantity((prev) => prev + 1);
+
+//   const scrollToTop = () => {
+//     window.scrollTo({ top: 0, behavior: "smooth" });
+//   };
+
+//   // Structured data for SEO
+//   const structuredData = {
+//     "@context": "https://schema.org",
+//     "@type": "WebPage",
+//     name: "WEATHERED | Premium Fashion Collections",
+//     description: "Discover premium fashion collections with a timeless vintage and archive aesthetic.",
+//     publisher: {
+//       "@type": "Organization",
+//       name: "WEATHERED",
+//       logo: {
+//         "@type": "ImageObject",
+//         url: "/images/logo.png",
+//       },
+//     },
+//     potentialAction: {
+//       "@type": "SearchAction",
+//       target: "/search?q={search_term_string}",
+//       "query-input": "required name=search_term_string",
+//     },
+//   };
+
+//   return (
+//     <>
+//       <Head>
+//         <title>WEATHERED | Premium Fashion Collections</title>
+//         <meta
+//           name="description"
+//           content="Discover premium fashion collections with a timeless vintage and archive aesthetic."
+//         />
+//         <meta name="keywords" content="fashion, luxury, vintage, archive, weathered, premium" />
+//         <meta name="viewport" content="width=device-width, initial-scale=1" />
+//         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+//         <link rel="preconnect" href="https://fonts.googleapis.com" />
+//         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+//         <link
+//           href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lora:ital,wght@0,400;0,700;1,400&display=swap"
+//           rel="stylesheet"
+//         />
+//       </Head>
+
+//       <div className="bg-white mt-[50px] font-lora">
+//         {/* Hero Banner Slider */}
+//         <div className="relative w-full h-screen max-h-[90vh] overflow-hidden">
+//           <div
+//             ref={bannerRef}
+//             className="absolute inset-0 flex transition-transform duration-1000 ease-in-out"
+//             style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+//           >
+//             {banners.map((banner, index) => (
+//               <motion.div
+//                 key={index}
+//                 className="relative w-full h-full flex-shrink-0"
+//                 initial={{ opacity: 0 }}
+//                 animate={{ opacity: 1 }}
+//                 transition={{ duration: 0.8 }}
+//               >
+//                 <Image
+//                   src={banner.src}
+//                   alt={banner.title}
+//                   fill
+//                   priority={index === 0}
+//                   sizes="100vw"
+//                   className="object-cover w-full h-full"
+//                   style={{
+//                     transform: currentIndex === index ? "scale(1.05)" : "scale(1)",
+//                     transition: "transform 10s ease-out",
+//                   }}
+//                 />
+//                 <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 flex items-center">
+//                   <div className="container max-w-7xl mx-auto px-4">
+//                     <motion.div
+//                       className="max-w-md text-white"
+//                       initial={{ opacity: 0, x: -50 }}
+//                       animate={{ opacity: currentIndex === index ? 1 : 0, x: currentIndex === index ? 0 : -50 }}
+//                       transition={{ duration: 0.8, delay: 0.3 }}
+//                     >
+//                       <p className="text-xs uppercase tracking-widest mb-3 font-light">
+//                         {language === 'vi' ? 'Xuân/Hè 2025' : 'Spring/Summer 2025'}
+//                       </p>
+//                       <h1 className="text-4xl md:text-5xl font-cinzel font-bold mb-6 leading-tight">
+//                         {banner.title}
+//                       </h1>
+//                       <p className="text-base md:text-lg mb-8 font-light">{banner.description}</p>
+//                       <Link
+//                         href={banner.link}
+//                         className="group inline-block px-8 py-3 border border-white text-white text-sm uppercase tracking-widest font-light hover:bg-white hover:text-black transition-all duration-300"
+//                       >
+//                         {banner.buttonText}
+//                         <ArrowRight
+//                           size={18}
+//                           className="inline-block ml-2 transform group-hover:translate-x-2 transition-transform duration-300"
+//                         />
+//                       </Link>
+//                     </motion.div>
+//                   </div>
+//                 </div>
+//               </motion.div>
+//             ))}
+//           </div>
+
+//           {/* Navigation Arrows */}
+//           <button
+//             onClick={prevSlide}
+//             className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-white/20 backdrop-blur-sm rounded-full hover:bg-white hover:text-black transition-all duration-300 z-10 text-white"
+//             aria-label="Previous slide"
+//           >
+//             <ChevronLeft size={24} />
+//           </button>
+//           <button
+//             onClick={nextSlide}
+//             className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-white/20 backdrop-blur-sm rounded-full hover:bg-white hover:text-black transition-all duration-300 z-10 text-white"
+//             aria-label="Next slide"
+//           >
+//             <ChevronRight size={24} />
+//           </button>
+
+//           {/* Slide Indicators */}
+//           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex space-x-3 z-10">
+//             {banners.map((_, index) => (
+//               <button
+//                 key={index}
+//                 onClick={() => goToSlide(index)}
+//                 className={`h-2 rounded-full transition-all duration-300 ${
+//                   currentIndex === index ? "bg-white w-12" : "bg-white/50 w-2"
+//                 }`}
+//                 aria-label={`Go to slide ${index + 1}`}
+//               />
+//             ))}
+//           </div>
+//         </div>
+
+//         {/* Unique Selling Points */}
+//         <div className="bg-white py-16 border-b border-gray-100">
+//           <div className="container max-w-7xl mx-auto px-4">
+//             <motion.div
+//               className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12"
+//               variants={staggerChildren}
+//               initial="hidden"
+//               whileInView="show"
+//               viewport={{ once: true }}
+//             >
+//               {[
+//                 {
+//                   title: language === 'vi' ? 'Chất Liệu Bền Vững' : 'Sustainable Materials',
+//                   description: language === 'vi' ? 'Được tìm nguồn cung ứng có đạo đức' : 'Ethically sourced materials',
+//                   icon: (
+//                     <svg className="h-8 w-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+//                       <path
+//                         strokeLinecap="round"
+//                         strokeLinejoin="round"
+//                         strokeWidth={1.5}
+//                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+//                       />
+//                     </svg>
+//                   ),
+//                 },
+//                 {
+//                   title: language === 'vi' ? 'Thủ Công Tinh Tế' : 'Artisan Craftsmanship',
+//                   description: language === 'vi' ? 'Mỗi sản phẩm được làm thủ công tỉ mỉ' : 'Handcrafted with precision',
+//                   icon: (
+//                     <svg className="h-8 w-8 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+//                       <path
+//                         strokeLinecap="round"
+//                         strokeLinejoin="round"
+//                         strokeWidth={1.5}
+//                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+//                       />
+//                     </svg>
+//                   ),
+//                 },
+//                 {
+//                   title: language === 'vi' ? 'Vận Chuyển Toàn Cầu' : 'Global Shipping',
+//                   description: language === 'vi' ? 'Miễn phí cho đơn trên 500k VND' : 'Free on orders over 500k VND',
+//                   icon: (
+//                     <svg className="h-8 w-8 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+//                       <path
+//                         strokeLinecap="round"
+//                         strokeLinejoin="round"
+//                         strokeWidth={1.5}
+//                         d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+//                       />
+//                     </svg>
+//                   ),
+//                 },
+//               ].map((usp, index) => (
+//                 <motion.div
+//                   key={index}
+//                   className="text-center"
+//                   variants={fadeInItem}
+//                 >
+//                   <div className="mb-4">{usp.icon}</div>
+//                   <h3 className="text-lg font-cinzel font-medium mb-2">{usp.title}</h3>
+//                   <p className="text-gray-600 text-sm font-light">{usp.description}</p>
+//                 </motion.div>
+//               ))}
+//             </motion.div>
+//           </div>
+//         </div>
+
+//         {/* Shop by Collection */}
+//         <div className="py-24 bg-[#f9f9f9]">
+//           <div className="container max-w-7xl mx-auto px-4">
+//             <motion.div
+//               className="text-center mb-16"
+//               {...fadeInUp}
+//               viewport={{ once: true }}
+//             >
+//               <span className="text-xs uppercase tracking-widest text-gray-600 mb-3 block">
+//                 {language === 'vi' ? 'Khám Phá' : 'Explore'}
+//               </span>
+//               <h2 className="text-4xl md:text-5xl font-cinzel font-bold mb-4">
+//                 {language === 'vi' ? 'Bộ Sưu Tập' : 'Collections'}
+//               </h2>
+//               <span className="block w-16 h-[1px] bg-gray-900 mx-auto"></span>
+//             </motion.div>
+//             <motion.div
+//               className="grid grid-cols-1 md:grid-cols-3 gap-8"
+//               variants={staggerChildren}
+//               initial="hidden"
+//               whileInView="show"
+//               viewport={{ once: true }}
+//             >
+//               {categories.map((category, index) => (
+//                 <motion.div
+//                   key={index}
+//                   className="relative group cursor-pointer"
+//                   variants={fadeInItem}
+//                 >
+//                   <div className="relative w-full h-96 rounded-full overflow-hidden">
+//                     <Image
+//                       src={category.image}
+//                       alt={category.title}
+//                       fill
+//                       sizes="(max-width: 768px) 100vw, 33vw"
+//                       className="object-cover w-full h-full transition-all duration-500 group-hover:scale-105"
+//                       loading="lazy"
+//                     />
+//                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+//                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+//                       <h3 className="text-xl font-cinzel font-bold text-white bg-black/50 px-6 py-2 rounded">
+//                         {category.title}
+//                       </h3>
+//                     </div>
+//                   </div>
+//                   <motion.div
+//                     className="absolute inset-0 flex items-end p-6 text-white"
+//                     initial={{ opacity: 0 }}
+//                     whileHover={{ opacity: 1 }}
+//                     transition={{ duration: 0.4 }}
+//                   >
+//                     <div className="w-full text-center">
+//                       <p className="text-sm mb-4 font-light">{category.description}</p>
+//                       <Link
+//                         href={category.link}
+//                         className="group inline-block px-6 py-2 border border-white text-white text-xs uppercase tracking-widest font-light hover:bg-white hover:text-black transition-all duration-300"
+//                       >
+//                         {language === 'vi' ? 'Mua Sắm Ngay' : 'Shop Now'}
+//                         <ArrowRight
+//                           size={16}
+//                           className="inline-block ml-2 transform group-hover:translate-x-2 transition-transform duration-300"
+//                         />
+//                       </Link>
+//                     </div>
+//                   </motion.div>
+//                 </motion.div>
+//               ))}
+//             </motion.div>
+//           </div>
+//         </div>
+
+//         {/* New Arrivals */}
+//         <div className="py-24 bg-white">
+//           <div className="container max-w-7xl mx-auto px-4">
+//             <motion.div
+//               className="text-center mb-16"
+//               {...fadeInUp}
+//               viewport={{ once: true }}
+//             >
+//               <span className="text-xs uppercase tracking-widest text-gray-600 mb-3 block">
+//                 {language === 'vi' ? 'Mới Về' : 'Just Arrived'}
+//               </span>
+//               <h2 className="text-4xl md:text-5xl font-cinzel font-bold mb-4">
+//                 {language === 'vi' ? 'Hàng Mới Về' : 'New Arrivals'}
+//               </h2>
+//               <span className="block w-16 h-[1px] bg-gray-900 mx-auto"></span>
+//             </motion.div>
+
+//             {loading && (
+//               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+//                 {Array(4)
+//                   .fill(0)
+//                   .map((_, index) => (
+//                     <ProductSkeleton key={index} />
+//                   ))}
+//               </div>
+//             )}
+
+//             {!loading && !error && (
+//               <motion.div
+//                 className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"
+//                 variants={staggerChildren}
+//                 initial="hidden"
+//                 whileInView="show"
+//                 viewport={{ once: true }}
+//               >
+//                 {products
+//                   .filter((product) => product.isNew)
+//                   .slice(0, 4)
+//                   .map((product, index) => (
+//                     <motion.div
+//                       key={product.id}
+//                       className="group relative"
+//                       variants={productHover}
+//                       whileHover="hover"
+//                       initial={{ opacity: 0, y: 30 }}
+//                       whileInView={{ opacity: 1, y: 0 }}
+//                       transition={{ duration: 0.6, delay: (index % 4) * 0.1 }}
+//                       viewport={{ once: true }}
+//                       onMouseEnter={() => setHoveredProduct(product.id)}
+//                       onMouseLeave={() => setHoveredProduct(null)}
+//                     >
+//                       <div className="aspect-[2/3] relative overflow-hidden rounded-lg bg-gray-100">
+//                         <Link href={`/products/${product.id}`} className="block relative h-full w-full">
+//                           <Image
+//                             src={product.image}
+//                             alt={product.name}
+//                             fill
+//                             sizes="(max-width: 768px) 50vw, 25vw"
+//                             className="object-cover w-full h-full transition-all duration-700 group-hover:scale-105"
+//                             loading="lazy"
+//                           />
+//                           {product.isNew && (
+//                             <div className="absolute top-2 left-2 bg-black text-white px-3 py-1 text-xs uppercase tracking-widest font-light">
+//                               {language === 'vi' ? 'Mới' : 'New'}
+//                             </div>
+//                           )}
+//                         </Link>
+
+//                         <motion.div
+//                           className="absolute top-2 right-2 flex flex-col gap-2"
+//                           initial={{ opacity: 0, x: 20 }}
+//                           animate={{
+//                             opacity: hoveredProduct === product.id ? 1 : 0,
+//                             x: hoveredProduct === product.id ? 0 : 20,
+//                           }}
+//                           transition={{ duration: 0.3 }}
+//                         >
+//                           <button
+//                             onClick={(e) => toggleWishlist(product.id, e)}
+//                             className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 transition-all shadow-md"
+//                             aria-label="Add to Wishlist"
+//                           >
+//                             <svg
+//                               className={`h-5 w-5 ${wishlist.has(product.id) ? "text-red-500 fill-red-500" : "text-gray-700"}`}
+//                               viewBox="0 0 24 24"
+//                               stroke="currentColor"
+//                               fill="none"
+//                             >
+//                               <path
+//                                 strokeLinecap="round"
+//                                 strokeLinejoin="round"
+//                                 strokeWidth={wishlist.has(product.id) ? 0 : 1.5}
+//                                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+//                               />
+//                             </svg>
+//                           </button>
+//                           <button
+//                             onClick={(e) => openQuickView(product, e)}
+//                             className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 transition-all shadow-md"
+//                             aria-label="Quick View"
+//                           >
+//                             <svg
+//                               className="h-5 w-5 text-gray-700"
+//                               viewBox="0 0 24 24"
+//                               fill="none"
+//                               stroke="currentColor"
+//                             >
+//                               <path
+//                                 strokeLinecap="round"
+//                                 strokeLinejoin="round"
+//                                 strokeWidth={1.5}
+//                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+//                               />
+//                             </svg>
+//                           </button>
+//                         </motion.div>
+
+//                         <motion.button
+//                           onClick={(e) => addToCartHandler(product, 1, e)}
+//                           className="absolute bottom-0 left-0 right-0 py-3 bg-black text-white text-xs uppercase tracking-widest font-light hover:bg-gray-900 transition-all"
+//                           initial={{ y: "100%" }}
+//                           animate={{ y: hoveredProduct === product.id ? 0 : "100%" }}
+//                           transition={{ duration: 0.3 }}
+//                           aria-label="Add to Cart"
+//                         >
+//                           {language === 'vi' ? 'Thêm Vào Giỏ' : 'Add to Cart'}
+//                         </motion.button>
+//                       </div>
+
+//                       <div className="mt-4 text-center">
+//                         <h3 className="text-sm font-medium">
+//                           <Link href={`/products/${product.id}`} className="group relative inline-block">
+//                             <span className="text-gray-800 hover:text-black transition-colors duration-300">
+//                               {product.name}
+//                             </span>
+//                             <span className="absolute -bottom-1 left-0 w-0 h-[0.5px] bg-black group-hover:w-full transition-all duration-300"></span>
+//                           </Link>
+//                         </h3>
+//                         <p className="text-gray-800 text-sm font-medium mt-1">
+//                           {product.price.toLocaleString("vi-VN")} đ
+//                           {product.discount && (
+//                             <span className="text-red-500 ml-2">
+//                               (-{((product.discount / product.price) * 100).toFixed(0)}%)
+//                             </span>
+//                           )}
+//                         </p>
+//                       </div>
+//                     </motion.div>
+//                   ))}
+//               </motion.div>
+//             )}
+
+//             <div className="text-center mt-12">
+//               <Link
+//                 href="/products/new"
+//                 className="group inline-block px-8 py-3 border border-gray-900 text-gray-900 text-xs uppercase tracking-widest font-light hover:bg-gray-900 hover:text-white transition-all duration-300"
+//               >
+//                 {language === 'vi' ? 'Xem Tất Cả Hàng Mới' : 'View All New Arrivals'}
+//                 <ArrowRight
+//                   size={16}
+//                   className="inline-block ml-2 transform group-hover:translate-x-2 transition-transform duration-300"
+//                 />
+//               </Link>
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* Trending Now */}
+//         <div className="py-24 bg-[#f9f9f9]">
+//           <div className="container max-w-7xl mx-auto px-4">
+//             <motion.div
+//               className="text-center mb-16"
+//               {...fadeInUp}
+//               viewport={{ once: true }}
+//             >
+//               <span className="text-xs uppercase tracking-widest text-gray-600 mb-3 block">
+//                 {language === 'vi' ? 'Được Yêu Thích' : 'Curated Picks'}
+//               </span>
+//               <h2 className="text-4xl md:text-5xl font-cinzel font-bold mb-4">
+//                 {language === 'vi' ? 'Xu Hướng Hiện Nay' : 'Trending Now'}
+//               </h2>
+//               <span className="block w-16 h-[1px] bg-gray-900 mx-auto"></span>
+//             </motion.div>
+
+//             <motion.div
+//               className="flex flex-wrap justify-center gap-4 mb-12"
+//               variants={staggerChildren}
+//               initial="hidden"
+//               whileInView="show"
+//               viewport={{ once: true }}
+//             >
+//               {["all", "archive", "blockcore", "vintage", "featured"].map((tab) => (
+//                 <motion.button
+//                   key={tab}
+//                   onClick={() => setActiveTab(tab)}
+//                   className={`px-6 py-2 text-xs uppercase tracking-widest font-light transition-all duration-300 ${
+//                     activeTab === tab ? "bg-gray-900 text-white" : "bg-white text-gray-700 hover:bg-gray-200"
+//                   } rounded-full`}
+//                   variants={fadeInItem}
+//                 >
+//                   {tab === 'all'
+//                     ? language === 'vi' ? 'Tất Cả' : 'All'
+//                     : tab === 'featured'
+//                     ? language === 'vi' ? 'Nổi Bật' : 'Featured'
+//                     : tab.charAt(0).toUpperCase() + tab.slice(1)}
+//                 </motion.button>
+//               ))}
+//             </motion.div>
+
+//             {loading && (
+//               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+//                 {Array(8)
+//                   .fill(0)
+//                   .map((_, index) => (
+//                     <ProductSkeleton key={index} />
+//                   ))}
+//               </div>
+//             )}
+
+//             {error && <div className="text-center text-red-600 py-16 text-lg">Error: {error}</div>}
+
+//             {!loading && !error && (
+//               <motion.div
+//                 className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"
+//                 variants={staggerChildren}
+//                 initial="hidden"
+//                 whileInView="show"
+//                 viewport={{ once: true }}
+//               >
+//                 {filteredProducts.slice(0, 8).map((product, index) => (
+//                   <motion.div
+//                     key={product.id}
+//                     className="group relative"
+//                     variants={productHover}
+//                     whileHover="hover"
+//                     initial={{ opacity: 0, y: 30 }}
+//                     whileInView={{ opacity: 1, y: 0 }}
+//                     transition={{ duration: 0.6, delay: (index % 4) * 0.1 }}
+//                     viewport={{ once: true }}
+//                     onMouseEnter={() => setHoveredProduct(product.id)}
+//                     onMouseLeave={() => setHoveredProduct(null)}
+//                   >
+//                     <div className="aspect-[2/3] relative overflow-hidden rounded-lg bg-gray-100">
+//                       <Link href={`/products/${product.id}`} className="block relative h-full w-full">
+//                         <Image
+//                           src={product.image}
+//                           alt={product.name}
+//                           fill
+//                           sizes="(max-width: 768px) 50vw, 25vw"
+//                           className="object-cover w-full h-full transition-all duration-700 group-hover:scale-105"
+//                           loading="lazy"
+//                         />
+//                         {product.isNew && (
+//                           <div className="absolute top-2 left-2 bg-black text-white px-3 py-1 text-xs uppercase tracking-widest font-light">
+//                             {language === 'vi' ? 'Mới' : 'New'}
+//                           </div>
+//                         )}
+//                       </Link>
+
+//                       <motion.div
+//                         className="absolute top-2 right-2 flex flex-col gap-2"
+//                         initial={{ opacity: 0, x: 20 }}
+//                         animate={{
+//                           opacity: hoveredProduct === product.id ? 1 : 0,
+//                           x: hoveredProduct === product.id ? 0 : 20,
+//                         }}
+//                         transition={{ duration: 0.3 }}
+//                       >
+//                         <button
+//                           onClick={(e) => toggleWishlist(product.id, e)}
+//                           className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 transition-all shadow-md"
+//                           aria-label="Add to Wishlist"
+//                         >
+//                           <svg
+//                             className={`h-5 w-5 ${wishlist.has(product.id) ? "text-red-500 fill-red-500" : "text-gray-700"}`}
+//                             viewBox="0 0 24 24"
+//                             stroke="currentColor"
+//                             fill="none"
+//                           >
+//                             <path
+//                               strokeLinecap="round"
+//                               strokeLinejoin="round"
+//                               strokeWidth={wishlist.has(product.id) ? 0 : 1.5}
+//                               d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+//                             />
+//                           </svg>
+//                         </button>
+//                         <button
+//                           onClick={(e) => openQuickView(product, e)}
+//                           className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 transition-all shadow-md"
+//                           aria-label="Quick View"
+//                         >
+//                           <svg
+//                             className="h-5 w-5 text-gray-700"
+//                             viewBox="0 0 24 24"
+//                             fill="none"
+//                             stroke="currentColor"
+//                           >
+//                             <path
+//                               strokeLinecap="round"
+//                               strokeLinejoin="round"
+//                               strokeWidth={1.5}
+//                               d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+//                             />
+//                           </svg>
+//                         </button>
+//                       </motion.div>
+
+//                       <motion.button
+//                         onClick={(e) => addToCartHandler(product, 1, e)}
+//                         className="absolute bottom-0 left-0 right-0 py-3 bg-black text-white text-xs uppercase tracking-widest font-light hover:bg-gray-900 transition-all"
+//                         initial={{ y: "100%" }}
+//                         animate={{ y: hoveredProduct === product.id ? 0 : "100%" }}
+//                         transition={{ duration: 0.3 }}
+//                         aria-label="Add to Cart"
+//                       >
+//                         {language === 'vi' ? 'Thêm Vào Giỏ' : 'Add to Cart'}
+//                       </motion.button>
+//                     </div>
+
+//                     <div className="mt-4 text-center">
+//                       <h3 className="text-sm font-medium">
+//                         <Link href={`/products/${product.id}`} className="group relative inline-block">
+//                           <span className="text-gray-800 hover:text-black transition-colors duration-300">
+//                             {product.name}
+//                           </span>
+//                           <span className="absolute -bottom-1 left-0 w-0 h-[0.5px] bg-black group-hover:w-full transition-all duration-300"></span>
+//                         </Link>
+//                       </h3>
+//                       <p className="text-gray-800 text-sm font-medium mt-1">
+//                         {product.price.toLocaleString("vi-VN")} đ
+//                         {product.discount && (
+//                           <span className="text-red-500 ml-2">
+//                             (-{((product.discount / product.price) * 100).toFixed(0)}%)
+//                           </span>
+//                         )}
+//                       </p>
+//                     </div>
+//                   </motion.div>
+//                 ))}
+//               </motion.div>
+//             )}
+
+//             {!loading && !error && filteredProducts.length === 0 && (
+//               <div className="text-center text-gray-600 py-16">
+//                 <p className="mb-6 text-lg font-light">
+//                   {language === 'vi' ? 'Không có sản phẩm trong danh mục này' : 'No products in this category'}
+//                 </p>
+//                 <button
+//                   onClick={() => setActiveTab("all")}
+//                   className="px-8 py-3 bg-gray-900 text-white text-xs uppercase tracking-widest font-light hover:bg-black transition-all"
+//                 >
+//                   {language === 'vi' ? 'Xem Tất Cả Sản Phẩm' : 'View All Products'}
+//                 </button>
+//               </div>
+//             )}
+
+//             <div className="text-center mt-12">
+//               <Link
+//                 href="/products"
+//                 className="group inline-block px-8 py-3 border border-gray-900 text-gray-900 text-xs uppercase tracking-widest font-light hover:bg-gray-900 hover:text-white transition-all duration-300"
+//               >
+//                 {language === 'vi' ? 'Xem Tất Cả Sản Phẩm' : 'View All Products'}
+//                 <ArrowRight
+//                   size={16}
+//                   className="inline-block ml-2 transform group-hover:translate-x-2 transition-transform duration-300"
+//                 />
+//               </Link>
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* Testimonials */}
+//         <div className="py-24 bg-white relative">
+//           <div className="absolute inset-0 bg-[url('/images/texture.png')] opacity-5"></div>
+//           <div className="container max-w-7xl mx-auto px-4 relative">
+//             <motion.div
+//               className="text-center mb-16"
+//               {...fadeInUp}
+//               viewport={{ once: true }}
+//             >
+//               <span className="text-xs uppercase tracking-widest text-gray-600 mb-3 block">
+//                 {language === 'vi' ? 'Ý Kiến Khách Hàng' : 'What They Say'}
+//               </span>
+//               <h2 className="text-4xl md:text-5xl font-cinzel font-bold mb-4">
+//                 {language === 'vi' ? 'Nhận Xét' : 'Testimonials'}
+//               </h2>
+//               <span className="block w-16 h-[1px] bg-gray-900 mx-auto"></span>
+//             </motion.div>
+//             <motion.div
+//               className="max-w-2xl mx-auto text-center"
+//               key={testimonialIndex}
+//               initial={{ opacity: 0, y: 20 }}
+//               animate={{ opacity: 1, y: 0 }}
+//               exit={{ opacity: 0, y: -20 }}
+//               transition={{ duration: 0.5 }}
+//             >
+//               <Image
+//                 src={testimonials[testimonialIndex].avatar}
+//                 alt={testimonials[testimonialIndex].name}
+//                 width={60}
+//                 height={60}
+//                 className="rounded-full mx-auto mb-6"
+//               />
+//               <p className="text-lg italic text-gray-600 mb-6 font-light">"{testimonials[testimonialIndex].quote}"</p>
+//               <p className="text-sm font-cinzel font-medium">{testimonials[testimonialIndex].name}</p>
+//               <p className="text-sm text-gray-500 font-light">{testimonials[testimonialIndex].role}</p>
+//             </motion.div>
+//             <div className="flex justify-center space-x-3 mt-8">
+//               {testimonials.map((_, index) => (
+//                 <button
+//                   key={index}
+//                   onClick={() => setTestimonialIndex(index)}
+//                   className={`h-2 w-2 rounded-full ${
+//                     testimonialIndex === index ? "bg-gray-900" : "bg-gray-300"
+//                   }`}
+//                   aria-label={`Go to testimonial ${index + 1}`}
+//                 />
+//               ))}
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* Newsletter */}
+//         <div className="bg-gray-900 text-white py-24">
+//           <div className="container max-w-7xl mx-auto px-4">
+//             <motion.div
+//               className="max-w-xl mx-auto text-center"
+//               {...fadeInUp}
+//               viewport={{ once: true }}
+//             >
+//               <h2 className="text-3xl md:text-4xl font-cinzel font-bold mb-4">
+//                 {language === 'vi' ? 'Đăng Ký Bản Tin' : 'Join Our Newsletter'}
+//               </h2>
+//               <p className="text-gray-300 mb-8 text-lg font-light">
+//                 {language === 'vi'
+//                   ? 'Nhận thông tin về các bộ sưu tập mới và ưu đãi độc quyền'
+//                   : 'Receive updates on new collections and exclusive offers'}
+//               </p>
+//               <form className="relative mb-6">
+//                 <input
+//                   type="email"
+//                   placeholder={language === 'vi' ? 'Email của bạn' : 'Your email'}
+//                   className="bg-transparent border-0 border-b border-gray-400 px-0 py-3 pr-10 w-full text-white focus:outline-none focus:border-white text-sm font-light transition-all duration-300"
+//                   required
+//                   aria-label="Email address"
+//                 />
+//                 <button
+//                   type="submit"
+//                   className="absolute right-0 top-0 h-full text-gray-400 hover:text-white transition-all duration-300 transform-gpu hover:scale-105"
+//                   aria-label="Subscribe"
+//                 >
+//                   <ArrowRight size={24} strokeWidth={1.5} />
+//                 </button>
+//               </form>
+//             </motion.div>
+//           </div>
+//         </div>
+
+//         {/* Quick View Modal */}
+//         <AnimatePresence>
+//           {quickViewProduct && (
+//             <motion.div
+//               className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
+//               onClick={closeQuickView}
+//               initial={{ opacity: 0 }}
+//               animate={{ opacity: 1 }}
+//               exit={{ opacity: 0 }}
+//             >
+//               <motion.div
+//                 className="w-full max-w-4xl bg-white p-8 overflow-auto max-h-[90vh] rounded-lg relative"
+//                 onClick={(e) => e.stopPropagation()}
+//                 initial={{ scale: 0.9, y: 20 }}
+//                 animate={{ scale: 1, y: 0 }}
+//                 exit={{ scale: 0.9, y: 20 }}
+//                 transition={{ duration: 0.4, type: "spring" }}
+//               >
+//                 <button
+//                   onClick={closeQuickView}
+//                   className="absolute right-4 top-4 text-gray-500 hover:text-gray-900 transition-all duration-300"
+//                   aria-label="Close Quick View"
+//                 >
+//                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+//                     <path
+//                       strokeLinecap="round"
+//                       strokeLinejoin="round"
+//                       strokeWidth={2}
+//                       d="M6 18L18 6M6 6l12 12"
+//                     />
+//                   </svg>
+//                 </button>
+
+//                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+//                   <div className="aspect-square relative bg-gray-100 rounded-lg">
+//                     <Image
+//                       src={quickViewProduct.image}
+//                       alt={quickViewProduct.name}
+//                       fill
+//                       sizes="50vw"
+//                       className="object-cover rounded-lg"
+//                     />
+//                     {quickViewProduct.isNew && (
+//                       <div className="absolute top-2 left-2 bg-black text-white px-3 py-1 text-xs uppercase tracking-widest font-light">
+//                         {language === 'vi' ? 'Mới' : 'New'}
+//                       </div>
+//                     )}
+//                   </div>
+
+//                   <div className="flex flex-col justify-between">
+//                     <div>
+//                       <h3 className="text-2xl font-cinzel font-bold mb-2">{quickViewProduct.name}</h3>
+//                       <p className="text-xl text-gray-900 mb-6 font-medium">
+//                         {quickViewProduct.price.toLocaleString("vi-VN")} đ
+//                         {quickViewProduct.discount && (
+//                           <span className="text-red-500 ml-2">
+//                             (-{((quickViewProduct.discount / quickViewProduct.price) * 100).toFixed(0)}%)
+//                           </span>
+//                         )}
+//                       </p>
+//                       <p className="text-gray-600 mb-6 leading-relaxed font-light">{quickViewProduct.description}</p>
+//                       <div className="mb-6">
+//                         <h4 className="font-medium mb-3 text-gray-900">
+//                           {language === 'vi' ? 'Kích Cỡ' : 'Size'}
+//                         </h4>
+//                         <div className="flex gap-2">
+//                           {quickViewProduct.size.split(",").map((size) => (
+//                             <button
+//                               key={size}
+//                               className="w-12 h-12 border border-gray-200 flex items-center justify-center hover:border-gray-900 transition-all font-light text-sm"
+//                               aria-label={`Select size ${size.trim()}`}
+//                             >
+//                               {size.trim()}
+//                             </button>
+//                           ))}
+//                         </div>
+//                       </div>
+//                       <div className="mb-8">
+//                         <h4 className="font-medium mb-3 text-gray-900">
+//                           {language === 'vi' ? 'Số Lượng' : 'Quantity'}
+//                         </h4>
+//                         <div className="flex border border-gray-200 w-36">
+//                           <button
+//                             className="w-12 h-12 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-all"
+//                             onClick={decreaseQuantity}
+//                             aria-label="Decrease quantity"
+//                           >
+//                             <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+//                               <path
+//                                 fillRule="evenodd"
+//                                 d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+//                                 clipRule="evenodd"
+//                               />
+//                             </svg>
+//                           </button>
+//                           <div className="flex-grow h-12 flex items-center justify-center border-x border-gray-200 font-medium">
+//                             {quantity}
+//                           </div>
+//                           <button
+//                             className="w-12 h-12 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-all"
+//                             onClick={increaseQuantity}
+//                             aria-label="Increase quantity"
+//                           >
+//                             <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+//                               <path
+//                                 fillRule="evenodd"
+//                                 d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+//                                 clipRule="evenodd"
+//                               />
+//                             </svg>
+//                           </button>
+//                         </div>
+//                       </div>
+//                     </div>
+//                     <div className="flex gap-4">
+//                       <button
+//                         onClick={() => {
+//                           addToCartHandler(quickViewProduct, quantity);
+//                           closeQuickView();
+//                         }}
+//                         className="flex-grow py-4 bg-gray-900 text-white text-xs uppercase tracking-widest font-light hover:bg-black transition-all"
+//                         aria-label="Add to Cart"
+//                       >
+//                         {language === 'vi' ? 'Thêm Vào Giỏ' : 'Add to Cart'}
+//                       </button>
+//                       <button
+//                         onClick={() => toggleWishlist(quickViewProduct.id)}
+//                         className="w-14 h-14 border border-gray-200 flex items-center justify-center hover:border-gray-900 transition-all"
+//                         aria-label="Add to Wishlist"
+//                       >
+//                         <svg
+//                           className={`h-6 w-6 ${
+//                             wishlist.has(quickViewProduct.id) ? "text-red-500 fill-red-500" : "text-gray-700"
+//                           }`}
+//                           viewBox="0 0 24 24"
+//                           stroke="currentColor"
+//                           fill="none"
+//                         >
+//                           <path
+//                             strokeLinecap="round"
+//                             strokeLinejoin="round"
+//                             strokeWidth={wishlist.has(quickViewProduct.id) ? 0 : 1.5}
+//                             d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+//                           />
+//                         </svg>
+//                       </button>
+//                     </div>
+//                   </div>
+//                 </div>
+//               </motion.div>
+//             </motion.div>
+//           )}
+//         </AnimatePresence>
+
+//         {/* Cart Notification */}
+//         <AnimatePresence>
+//           {cartNotification && (
+//             <motion.div
+//               className="fixed bottom-4 right-4 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 z-50"
+//               initial={{ opacity: 0, y: 20 }}
+//               animate={{ opacity: 1, y: 0 }}
+//               exit={{ opacity: 0, y: 20 }}
+//               transition={{ duration: 0.3 }}
+//             >
+//               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+//                 <path
+//                   strokeLinecap="round"
+//                   strokeLinejoin="round"
+//                   strokeWidth={1.5}
+//                   d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+//                 />
+//               </svg>
+//               <span>{language === 'vi' ? 'Đã thêm vào giỏ hàng!' : 'Added to cart!'}</span>
+//             </motion.div>
+//           )}
+//         </AnimatePresence>
+
+//         {/* Back to Top Button */}
+//         <AnimatePresence>
+//           {showBackToTop && (
+//             <motion.button
+//               onClick={scrollToTop}
+//               className="fixed bottom-8 right-8 w-12 h-12 bg-gray-900 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-black transition-all duration-300 z-50"
+//               initial={{ opacity: 0, scale: 0 }}
+//               animate={{ opacity: 1, scale: 1 }}
+//               exit={{ opacity: 0, scale: 0 }}
+//               aria-label="Back to Top"
+//             >
+//               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+//                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+//               </svg>
+//             </motion.button>
+//           )}
+//         </AnimatePresence>
+//       </div>
+//     </>
+//   );
+// }
+
+// // Error Boundary
+// import { Component, PropsWithChildren } from "react";
+
+// class ErrorBoundary extends Component<PropsWithChildren<{}>> {
+//   state = { hasError: false };
+
+//   static getDerivedStateFromError() {
+//     return { hasError: true };
+//   }
+
+//   render() {
+//     if (this.state.hasError) {
+//       return (
+//         <div className="text-center py-16">
+//           <h2 className="text-2xl font-cinzel font-bold text-red-600">Something went wrong.</h2>
+//           <p className="mt-4 text-gray-600 font-light">Please try refreshing the page.</p>
+//         </div>
+//       );
+//     }
+//     return this.props.children;
+//   }
+// }
+
+// export default function HomePageWithErrorBoundary() {
+//   return (
+//     <ErrorBoundary>
+//       <HomePage />
+//     </ErrorBoundary>
+//   );
+// }
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronLeft, faChevronRight, faShoppingCart } from "@fortawesome/free-solid-svg-icons";
+import Head from "next/head";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { useCart } from "@/lib/CartContext";
 
 // Define Product interface
 interface Product {
   id: string;
+  slug: string;
   name: string;
   image: string;
+  size: string;
+  description: string;
+  category: string;
+  collection?: string;
   price: number;
+  discount?: number | null;
+  images: string[];
+  createdAt: string;
+  isNew?: boolean;
+  isFeatured?: boolean;
+}
+
+// Define raw product data from API
+interface RawProduct {
+  _id: string;
+  slug?: string;
+  name: string;
+  images: string[];
+  size: string;
+  description: string;
+  category: string;
+  collection?: string;
+  price: number;
+  discount?: number;
+  createdAt: string;
 }
 
 // Banner slider data
 const banners = [
   {
     src: "/images/banner1.png",
-    title: "Welcome to Our Store",
-    description: "Discover the latest fashion trends",
-    buttonText: "Shop Now",
-    link: "/products",
-  },
-  {
-    src: "/images/banner2.png",
-    title: "New Arrivals",
-    description: "Explore our newest collection",
-    buttonText: "View Collection",
+    title: "Refined Elegance",
+    description: "Curated collections that epitomize modern sophistication",
+    buttonText: "Discover Now",
     link: "/collections/new",
   },
   {
+    src: "/images/banner2.png",
+    title: "Monochrome Mastery",
+    description: "Bold contrasts that define contemporary aesthetics",
+    buttonText: "Explore",
+    link: "/collections/summer",
+  },
+  {
     src: "/images/banner3.png",
-    title: "Seasonal Sale",
-    description: "Up to 50% off selected items",
-    buttonText: "Shop Deals",
+    title: "Limited Edition",
+    description: "Exclusive pieces available for a limited time only",
+    buttonText: "Shop Sale",
     link: "/collections/sale",
   },
 ];
 
-export default function HomePage() {
+// Category showcase data
+const categories = [
+  {
+    title: "Archive Collection",
+    image: "/images/archive.png",
+    link: "/collections/archive",
+    description: "Timeless pieces inspired by vintage aesthetics",
+  },
+  {
+    title: "Blockcore Collection",
+    image: "/images/blockcore.png",
+    link: "/collections/blockcore",
+    description: "Bold, modern designs for the urban trendsetter",
+  },
+  {
+    title: "Vintage Collection",
+    image: "/images/vintage.png",
+    link: "/collections/vintage",
+    description: "Classic styles reimagined for today's fashion",
+  },
+];
+
+// Testimonials data
+const testimonials = [
+  {
+    name: "Sophie Laurent",
+    role: "Fashion Blogger",
+    quote: "The attention to detail and quality of fabrics is unmatched. Every piece tells a story of craftsmanship.",
+    avatar: "/api/placeholder/60/60",
+  },
+  {
+    name: "Alex Chen",
+    role: "Creative Director",
+    quote: "This brand has redefined what minimalist elegance means in contemporary fashion. Simply outstanding.",
+    avatar: "/api/placeholder/60/60",
+  },
+  {
+    name: "Emma Rodriguez",
+    role: "Style Influencer",
+    quote: "The designs have a timeless quality that transcends seasonal trends. A must-have for any wardrobe.",
+    avatar: "/api/placeholder/60/60",
+  },
+];
+
+// Skeleton component
+const ProductSkeleton = () => (
+  <div className="animate-pulse group">
+    <div className="aspect-[2/3] bg-gray-200 rounded-lg"></div>
+    <div className="mt-4">
+      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+      <div className="h-3 bg-gray-200 rounded w-1/2 mt-2"></div>
+    </div>
+  </div>
+);
+
+function HomePage() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [testimonialIndex, setTestimonialIndex] = useState(0);
   const [cartNotification, setCartNotification] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [wishlist, setWishlist] = useState<Set<string>>(new Set());
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [activeTab, setActiveTab] = useState("all");
+  const [quantity, setQuantity] = useState(1);
+  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const bannerRef = useRef<HTMLDivElement>(null);
+  const [language, setLanguage] = useState<"vi" | "en">("vi");
+  const { addToCart } = useCart();
 
-  // Autoplay for banner slider
+  // Animation variants
+  const fadeInUp = {
+    initial: { y: 30, opacity: 0 },
+    animate: { y: 0, opacity: 1 },
+    transition: { duration: 0.6, ease: "easeOut" },
+  };
+
+  const productHover = {
+    hover: {
+      scale: 1.03,
+      transition: { duration: 0.4, ease: "easeOut" },
+    },
+  };
+
+  const staggerChildren = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const fadeInItem = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+  };
+
+  // Sync language
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % banners.length);
-    }, 5000);
-    return () => clearInterval(interval);
+    const savedLanguage = localStorage.getItem("language") as "vi" | "en" | null;
+    if (savedLanguage) {
+      setLanguage(savedLanguage);
+    }
+
+    const handleLanguageChange = (event: CustomEvent) => {
+      setLanguage(event.detail.language);
+    };
+
+    window.addEventListener("languageChange", handleLanguageChange as EventListener);
+    return () => window.removeEventListener("languageChange", handleLanguageChange as EventListener);
   }, []);
 
-  // Fetch products from API
+  // Handle scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 300);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Fetch products
   useEffect(() => {
     async function fetchProducts() {
       try {
         setLoading(true);
         const response = await fetch("/api/products");
-        if (!response.ok) {
-          throw new Error("Failed to fetch products");
-        }
+        if (!response.ok) throw new Error("Failed to fetch products");
         const data = await response.json();
-        // Map API data to match UI expectations
-        const formattedProducts = data.products.map(
-          (product: { _id: string; name: string; images: string[]; price: number }) => ({
-            id: product._id,
+        const mappedProducts: Product[] = data.products
+          .filter((product: RawProduct) => product._id && product.name)
+          .map((product: RawProduct) => ({
+            id: product._id.toString(),
+            slug: product.slug || product._id.toString(),
             name: product.name,
-            image: product.images[0] || "https://via.placeholder.com/300x400", // Use first image or fallback
+            image: product.images[0] || "/placeholder/300x400",
+            size: product.size,
+            description: product.description,
+            category: product.category,
+            collection: product.collection,
             price: product.price,
-          })
-        );
-        setProducts(formattedProducts);
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("An unknown error occurred");
-        }
+            discount: product.discount,
+            images: product.images,
+            createdAt: product.createdAt,
+            isNew: new Date(product.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+            isFeatured: !!product.discount,
+          }));
+        setProducts(mappedProducts);
+      } catch (error: unknown) {
+        setError(error instanceof Error ? error.message : "Failed to load products");
+        console.error("Fetch products error:", error);
       } finally {
         setLoading(false);
       }
@@ -87,150 +1490,1022 @@ export default function HomePage() {
     fetchProducts();
   }, []);
 
+  // Autoplay banner
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % banners.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Autoplay testimonials
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTestimonialIndex((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Preload images
+  useEffect(() => {
+    banners.forEach((banner) => {
+      const img = new window.Image();
+      img.src = banner.src;
+    });
+    categories.forEach((category) => {
+      const img = new window.Image();
+      img.src = category.image;
+    });
+  }, []);
+
+  // Memoized filtered products
+  const filteredProducts = useMemo(() => {
+    return activeTab === "all"
+      ? products
+      : products.filter((product) =>
+          activeTab === "featured"
+            ? product.isFeatured
+            : product.category?.toLowerCase() === activeTab.toLowerCase()
+        );
+  }, [activeTab, products]);
+
+  // Handlers
+  const toggleWishlist = (productId: string, e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    setWishlist((prev) => {
+      const newWishlist = new Set(prev);
+      if (newWishlist.has(productId)) {
+        newWishlist.delete(productId);
+      } else {
+        newWishlist.add(productId);
+      }
+      return newWishlist;
+    });
+  };
+
   const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % banners.length);
   const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
+  const goToSlide = (index: number) => setCurrentIndex(index);
 
-  // Add to cart handler
-  const addToCart = (product: Product) => {
-    console.log(`Product added: ${product.name}, ID: ${product.id}`);
+  const addToCartHandler = (product: Product, quantity: number = 1, e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      quantity,
+      size: "",
+    });
     setCartNotification(true);
     setTimeout(() => setCartNotification(false), 3000);
   };
 
+  const openQuickView = (product: Product, e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    setQuickViewProduct(product);
+    setQuantity(1);
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeQuickView = () => {
+    setQuickViewProduct(null);
+    document.body.style.overflow = "auto";
+  };
+
+  const decreaseQuantity = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+  const increaseQuantity = () => setQuantity((prev) => prev + 1);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Structured data for SEO
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "WEATHERED | Premium Fashion Collections",
+    description: "Discover premium fashion collections with a timeless vintage and archive aesthetic.",
+    publisher: {
+      "@type": "Organization",
+      name: "WEATHERED",
+      logo: {
+        "@type": "ImageObject",
+        url: "/images/logo.png",
+      },
+    },
+    potentialAction: {
+      "@type": "SearchAction",
+      target: "/search?q={search_term_string}",
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
-    <div className="bg-white">
-      {/* Banner Slider */}
-      <div className="relative w-full h-[400px] md:h-[600px] overflow-hidden">
-        <div
-          className="absolute inset-0 flex transition-transform duration-700 ease-in-out"
-          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-        >
-          {banners.map((banner, index) => (
-            <div key={index} className="relative w-full h-full flex-shrink-0">
-              <Image
-                src={banner.src}
-                alt={banner.title}
-                fill
-                style={{ objectFit: "cover" }}
-                className="w-full h-full"
-              />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/60 flex items-center justify-center">
-                <div className="text-center text-white max-w-3xl px-4">
-                  <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-4 tracking-tight">
-                    {banner.title}
-                  </h1>
-                  <p className="text-base md:text-lg lg:text-xl mb-6 font-light">
-                    {banner.description}
-                  </p>
-                  <Link
-                    href={banner.link}
-                    className="inline-block bg-white text-black px-6 md:px-8 py-2 md:py-3 text-sm md:text-base font-medium hover:bg-black hover:text-white transition-colors duration-300"
-                  >
-                    {banner.buttonText}
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Navigation Arrows */}
-        <button
-          onClick={prevSlide}
-          className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-all duration-300"
-        >
-          <FontAwesomeIcon icon={faChevronLeft} className="text-white text-lg" />
-        </button>
-        <button
-          onClick={nextSlide}
-          className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-all duration-300"
-        >
-          <FontAwesomeIcon icon={faChevronRight} className="text-white text-lg" />
-        </button>
-
-        {/* Slide Indicators */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={`h-2 w-2 rounded-full transition-all duration-300 ${
-                currentIndex === index ? "bg-white w-6" : "bg-white/40"
-              }`}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* New Arrivals Section */}
-      <div className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">NEW ARRIVALS</h2>
-        <p className="text-gray-600 text-center mb-12">Discover our latest collection</p>
-
-        {/* Loading State */}
-        {loading && (
-          <div className="text-center text-gray-600">Loading products...</div>
-        )}
-
-        {/* Error State */}
-        {error && (
-          <div className="text-center text-red-600">Error: {error}</div>
-        )}
-
-        {/* Product Grid */}
-        {!loading && !error && products.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {products.map((product: Product) => (
-              <div key={product.id} className="group">
-                <div className="relative overflow-hidden rounded-lg">
-                  <Link href={`/products/${product.id}`}>
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      width={300}
-                      height={400}
-                      className="w-full aspect-[3/4] object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </Link>
-                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-                    <button
-                      onClick={() => addToCart(product)}
-                      className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 transition-colors mx-auto"
+    <>
+      <Head>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      </Head>
+      <div className="bg-white mt-[50px] font-lora">
+        {/* Hero Banner Slider */}
+        <div className="relative w-full h-screen max-h-[90vh] overflow-hidden">
+          <div
+            ref={bannerRef}
+            className="absolute inset-0 flex transition-transform duration-1000 ease-in-out"
+            style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+          >
+            {banners.map((banner, index) => (
+              <motion.div
+                key={index}
+                className="relative w-full h-full flex-shrink-0"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8 }}
+              >
+                <Image
+                  src={banner.src}
+                  alt={banner.title}
+                  fill
+                  priority={index === 0}
+                  sizes="100vw"
+                  className="object-cover w-full h-full"
+                  style={{
+                    transform: currentIndex === index ? "scale(1.05)" : "scale(1)",
+                    transition: "transform 10s ease-out",
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 flex items-center">
+                  <div className="container max-w-7xl mx-auto px-4">
+                    <motion.div
+                      className="max-w-md text-white"
+                      initial={{ opacity: 0, x: -50 }}
+                      animate={{ opacity: currentIndex === index ? 1 : 0, x: currentIndex === index ? 0 : -50 }}
+                      transition={{ duration: 0.8, delay: 0.3 }}
                     >
-                      <FontAwesomeIcon icon={faShoppingCart} className="text-gray-800 text-base" />
-                    </button>
+                      <p className="text-xs uppercase tracking-widest mb-3 font-light">
+                        {language === "vi" ? "Xuân/Hè 2025" : "Spring/Summer 2025"}
+                      </p>
+                      <h1 className="text-4xl md:text-5xl font-cinzel font-bold mb-6 leading-tight">
+                        {banner.title}
+                      </h1>
+                      <p className="text-base md:text-lg mb-8 font-light">{banner.description}</p>
+                      <Link
+                        href={banner.link}
+                        className="group inline-block px-8 py-3 border border-white text-white text-sm uppercase tracking-widest font-light hover:bg-white hover:text-black transition-all duration-300"
+                      >
+                        {banner.buttonText}
+                        <ArrowRight
+                          size={18}
+                          className="inline-block ml-2 transform group-hover:translate-x-2 transition-transform duration-300"
+                        />
+                      </Link>
+                    </motion.div>
                   </div>
                 </div>
-                <div className="mt-4 text-center">
-                  <h3 className="text-sm md:text-base font-medium">{product.name}</h3>
-                  <p className="text-gray-600 text-sm">{product.price.toLocaleString("vi-VN")} đ</p>
-                </div>
-              </div>
+              </motion.div>
             ))}
           </div>
-        )}
 
-        {/* Empty State */}
-        {!loading && !error && products.length === 0 && (
-          <div className="text-center text-gray-600">No products available.</div>
-        )}
-
-        <div className="text-center mt-12">
-          <Link
-            href="/products"
-            className="inline-block px-8 py-3 border-2 border-black text-sm md:text-base hover:bg-black hover:text-white transition-colors duration-300"
+          {/* Navigation Arrows */}
+          <button
+            onClick={prevSlide}
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-white/20 backdrop-blur-sm rounded-full hover:bg-white hover:text-black transition-all duration-300 z-10 text-white"
+            aria-label="Previous slide"
           >
-            View All Products
-          </Link>
-        </div>
-      </div>
+            <ChevronLeft size={24} />
+          </button>
+          <button
+            onClick={nextSlide}
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-white/20 backdrop-blur-sm rounded-full hover:bg-white hover:text-black transition-all duration-300 z-10 text-white"
+            aria-label="Next slide"
+          >
+            <ChevronRight size={24} />
+          </button>
 
-      {/* Cart Notification */}
-      {cartNotification && (
-        <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg">
-          Product added to cart!
+          {/* Slide Indicators */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex space-x-3 z-10">
+            {banners.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToSlide(index)}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  currentIndex === index ? "bg-white w-12" : "bg-white/50 w-2"
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
-      )}
-    </div>
+
+        {/* Unique Selling Points */}
+        <div className="bg-white text-black py-16 border-b border-gray-100">
+          <div className="container max-w-7xl mx-auto px-4">
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12"
+              variants={staggerChildren}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true }}
+            >
+              {[
+                {
+                  title: language === "vi" ? "Chất Liệu Bền Vững" : "Sustainable Materials",
+                  description: language === "vi" ? "Được tìm nguồn cung ứng có đạo đức" : "Ethically sourced materials",
+                  icon: (
+                    <svg className="h-8 w-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  ),
+                },
+                {
+                  title: language === "vi" ? "Thủ Công Tinh Tế" : "Artisan Craftsmanship",
+                  description: language === "vi" ? "Mỗi sản phẩm được làm thủ công tỉ mỉ" : "Handcrafted with precision",
+                  icon: (
+                    <svg className="h-8 w-8 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  ),
+                },
+                {
+                  title: language === "vi" ? "Vận Chuyển Toàn Cầu" : "Global Shipping",
+                  description: language === "vi" ? "Miễn phí cho đơn trên 500k VND" : "Free on orders over 500k VND",
+                  icon: (
+                    <svg className="h-8 w-8 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                      />
+                    </svg>
+                  ),
+                },
+              ].map((usp, index) => (
+                <motion.div key={index} className="text-center" variants={fadeInItem}>
+                  <div className="mb-4">{usp.icon}</div>
+                  <h3 className="text-lg font-cinzel font-medium mb-2">{usp.title}</h3>
+                  <p className="text-gray-600 text-sm font-light">{usp.description}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Shop by Collection */}
+        <div className="py-24 bg-[#f9f9f9]">
+          <div className="container max-w-7xl mx-auto px-4">
+            <motion.div className="text-center mb-16" {...fadeInUp} viewport={{ once: true }}>
+              <span className="text-xs uppercase tracking-widest text-gray-600 mb-3 block">
+                {language === "vi" ? "Khám Phá" : "Explore"}
+              </span>
+              <h2 className="text-4xl md:text-5xl text-black font-cinzel font-bold mb-4">
+                {language === "vi" ? "Bộ Sưu Tập" : "Collections"}
+              </h2>
+              <span className="block w-16 h-[1px] bg-gray-900 mx-auto"></span>
+            </motion.div>
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-3 gap-8"
+              variants={staggerChildren}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true }}
+            >
+              {categories.map((category, index) => (
+                <motion.div key={index} className="relative group cursor-pointer" variants={fadeInItem}>
+                  <div className="relative w-full h-96 rounded-full overflow-hidden">
+                    <Image
+                      src={category.image}
+                      alt={category.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-cover w-full h-full transition-all duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                      <h3 className="text-xl font-cinzel font-bold text-white bg-black/50 px-6 py-2 rounded">
+                        {category.title}
+                      </h3>
+                    </div>
+                  </div>
+                  <motion.div
+                    className="absolute inset-0 flex items-end p-6 text-white"
+                    initial={{ opacity: 0 }}
+                    whileHover={{ opacity: 1 }}
+                    transition={{ duration: 0.4 }}
+                  >
+                    <div className="w-full text-center">
+                      <p className="text-sm mb-4 font-light">{category.description}</p>
+                      <Link
+                        href={category.link}
+                        className="group inline-block px-6 py-2 border border-white text-white text-xs uppercase tracking-widest font-light hover:bg-white hover:text-black transition-all duration-300"
+                      >
+                        {language === "vi" ? "Mua Sắm Ngay" : "Shop Now"}
+                        <ArrowRight
+                          size={16}
+                          className="inline-block ml-2 transform group-hover:translate-x-2 transition-transform duration-300"
+                        />
+                      </Link>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </div>
+
+        {/* New Arrivals */}
+        <div className="py-24 bg-white">
+          <div className="container max-w-7xl mx-auto px-4">
+            <motion.div className="text-center mb-16" {...fadeInUp} viewport={{ once: true }}>
+              <span className="text-xs uppercase tracking-widest text-gray-600 mb-3 block">
+                {language === "vi" ? "Mới Về" : "Just Arrived"}
+              </span>
+              <h2 className="text-4xl md:text-5xl  text-black font-cinzel font-bold mb-4">
+                {language === "vi" ? "Hàng Mới Về" : "New Arrivals"}
+              </h2>
+              <span className="block w-16 h-[1px] bg-gray-900 mx-auto"></span>
+            </motion.div>
+
+            {loading && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+                {Array(4)
+                  .fill(0)
+                  .map((_, index) => (
+                    <ProductSkeleton key={index} />
+                  ))}
+              </div>
+            )}
+
+            {!loading && !error && (
+              <motion.div
+                className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"
+                variants={staggerChildren}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true }}
+              >
+                {products
+                  .filter((product) => product.isNew)
+                  .slice(0, 4)
+                  .map((product, index) => (
+                    <motion.div
+                      key={product.id}
+                      className="group relative"
+                      variants={productHover}
+                      whileHover="hover"
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: (index % 4) * 0.1 }}
+                      viewport={{ once: true }}
+                      onMouseEnter={() => setHoveredProduct(product.id)}
+                      onMouseLeave={() => setHoveredProduct(null)}
+                    >
+                      <div className="aspect-[2/3] relative overflow-hidden rounded-lg bg-gray-100">
+                        <Link href={`/products/${product.slug}`} className="block relative h-full w-full">
+                          <Image
+                            src={product.image}
+                            alt={product.name}
+                            fill
+                            sizes="(max-width: 768px) 50vw, 25vw"
+                            className="object-cover w-full h-full transition-all duration-700 group-hover:scale-105"
+                            loading="lazy"
+                          />
+                          {product.isNew && (
+                            <div className="absolute top-2 left-2 bg-black text-white px-3 py-1 text-xs uppercase tracking-widest font-light">
+                              {language === "vi" ? "Mới" : "New"}
+                            </div>
+                          )}
+                        </Link>
+
+                        <motion.div
+                          className="absolute top-2 right-2 flex flex-col gap-2"
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{
+                            opacity: hoveredProduct === product.id ? 1 : 0,
+                            x: hoveredProduct === product.id ? 0 : 20,
+                          }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <button
+                            onClick={(e) => toggleWishlist(product.id, e)}
+                            className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 transition-all shadow-md"
+                            aria-label="Add to Wishlist"
+                          >
+                            <svg
+                              className={`h-5 w-5 ${wishlist.has(product.id) ? "text-red-500 fill-red-500" : "text-gray-700"}`}
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              fill="none"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={wishlist.has(product.id) ? 0 : 1.5}
+                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={(e) => openQuickView(product, e)}
+                            className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 transition-all shadow-md"
+                            aria-label="Quick View"
+                          >
+                            <svg
+                              className="h-5 w-5 text-gray-700"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.5}
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                              />
+                            </svg>
+                          </button>
+                        </motion.div>
+
+                        <motion.button
+                          onClick={(e) => addToCartHandler(product, 1, e)}
+                          className="absolute bottom-0 left-0 right-0 py-3 bg-black text-white text-xs uppercase tracking-widest font-light hover:bg-gray-900 transition-all"
+                          initial={{ y: "100%" }}
+                          animate={{ y: hoveredProduct === product.id ? 0 : "100%" }}
+                          transition={{ duration: 0.3 }}
+                          aria-label="Add to Cart"
+                        >
+                          {language === "vi" ? "Thêm Vào Giỏ" : "Add to Cart"}
+                        </motion.button>
+                      </div>
+
+                      <div className="mt-4 text-center">
+                        <h3 className="text-sm font-medium">
+                          <Link href={`/products/${product.slug}`} className="group relative inline-block">
+                            <span className="text-gray-800 hover:text-black transition-colors duration-300">
+                              {product.name}
+                            </span>
+                            <span className="absolute -bottom-1 left-0 w-0 h-[0.5px] bg-black group-hover:w-full transition-all duration-300"></span>
+                          </Link>
+                        </h3>
+                        <p className="text-gray-800 text-sm font-medium mt-1">
+                          {product.price.toLocaleString("vi-VN")} đ
+                          {product.discount && (
+                            <span className="text-red-500 ml-2">
+                              (-{((product.discount / product.price) * 100).toFixed(0)}%)
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+              </motion.div>
+            )}
+
+            <div className="text-center mt-12">
+              <Link
+                href="/products/new"
+                className="group inline-block px-8 py-3 border border-gray-900 text-gray-900 text-xs uppercase tracking-widest font-light hover:bg-gray-900 hover:text-white transition-all duration-300"
+              >
+                {language === "vi" ? "Xem Tất Cả Hàng Mới" : "View All New Arrivals"}
+                <ArrowRight
+                  size={16}
+                  className="inline-block ml-2 transform group-hover:translate-x-2 transition-transform duration-300"
+                />
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Trending Now */}
+        <div className="py-24 bg-[#f9f9f9]">
+          <div className="container max-w-7xl mx-auto px-4">
+            <motion.div className="text-center mb-16" {...fadeInUp} viewport={{ once: true }}>
+              <span className="text-xs uppercase tracking-widest text-gray-600 mb-3 block">
+                {language === "vi" ? "Được Yêu Thích" : "Curated Picks"}
+              </span>
+              <h2 className="text-4xl md:text-5xl text-black font-cinzel font-bold mb-4">
+                {language === "vi" ? "Xu Hướng Hiện Nay" : "Trending Now"}
+              </h2>
+              <span className="block w-16 h-[1px] bg-gray-900 mx-auto"></span>
+            </motion.div>
+
+            <motion.div
+              className="flex flex-wrap justify-center gap-4 mb-12"
+              variants={staggerChildren}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true }}
+            >
+              {["all", "archive", "blockcore", "vintage", "featured"].map((tab) => (
+                <motion.button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-6 py-2 text-xs uppercase tracking-widest font-light transition-all duration-300 ${
+                    activeTab === tab ? "bg-gray-900 text-white" : "bg-white text-gray-700 hover:bg-gray-200"
+                  } rounded-full`}
+                  variants={fadeInItem}
+                >
+                  {tab === "all"
+                    ? language === "vi"
+                      ? "Tất Cả"
+                      : "All"
+                    : tab === "featured"
+                    ? language === "vi"
+                      ? "Nổi Bật"
+                      : "Featured"
+                    : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </motion.button>
+              ))}
+            </motion.div>
+
+            {loading && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+                {Array(8)
+                  .fill(0)
+                  .map((_, index) => (
+                    <ProductSkeleton key={index} />
+                  ))}
+              </div>
+            )}
+
+            {error && <div className="text-center text-red-600 py-16 text-lg">Error: {error}</div>}
+
+            {!loading && !error && (
+              <motion.div
+                className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"
+                variants={staggerChildren}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true }}
+              >
+                {filteredProducts.slice(0, 8).map((product, index) => (
+                  <motion.div
+                    key={product.id}
+                    className="group relative"
+                    variants={productHover}
+                    whileHover="hover"
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: (index % 4) * 0.1 }}
+                    viewport={{ once: true }}
+                    onMouseEnter={() => setHoveredProduct(product.id)}
+                    onMouseLeave={() => setHoveredProduct(null)}
+                  >
+                    <div className="aspect-[2/3] relative overflow-hidden rounded-lg bg-gray-100">
+                      <Link href={`/products/${product.slug}`} className="block relative h-full w-full">
+                        <Image
+                          src={product.image}
+                          alt={product.name}
+                          fill
+                          sizes="(max-width: 768px) 50vw, 25vw"
+                          className="object-cover w-full h-full transition-all duration-700 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                        {product.isNew && (
+                          <div className="absolute top-2 left-2 bg-black text-white px-3 py-1 text-xs uppercase tracking-widest font-light">
+                            {language === "vi" ? "Mới" : "New"}
+                          </div>
+                        )}
+                      </Link>
+
+                      <motion.div
+                        className="absolute top-2 right-2 flex flex-col gap-2"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{
+                          opacity: hoveredProduct === product.id ? 1 : 0,
+                          x: hoveredProduct === product.id ? 0 : 20,
+                        }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <button
+                          onClick={(e) => toggleWishlist(product.id, e)}
+                          className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 transition-all shadow-md"
+                          aria-label="Add to Wishlist"
+                        >
+                          <svg
+                            className={`h-5 w-5 ${wishlist.has(product.id) ? "text-red-500 fill-red-500" : "text-gray-700"}`}
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            fill="none"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={wishlist.has(product.id) ? 0 : 1.5}
+                              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={(e) => openQuickView(product, e)}
+                          className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 transition-all shadow-md"
+                          aria-label="Quick View"
+                        >
+                          <svg
+                            className="h-5 w-5 text-gray-700"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                            />
+                          </svg>
+                        </button>
+                      </motion.div>
+
+                      <motion.button
+                        onClick={(e) => addToCartHandler(product, 1, e)}
+                        className="absolute bottom-0 left-0 right-0 py-3 bg-black text-white text-xs uppercase tracking-widest font-light hover:bg-gray-900 transition-all"
+                        initial={{ y: "100%" }}
+                        animate={{ y: hoveredProduct === product.id ? 0 : "100%" }}
+                        transition={{ duration: 0.3 }}
+                        aria-label="Add to Cart"
+                      >
+                        {language === "vi" ? "Thêm Vào Giỏ" : "Add to Cart"}
+                      </motion.button>
+                    </div>
+
+                    <div className="mt-4 text-center">
+                      <h3 className="text-sm font-medium">
+                        <Link href={`/products/${product.slug}`} className="group relative inline-block">
+                          <span className="text-gray-800 hover:text-black transition-colors duration-300">
+                            {product.name}
+                          </span>
+                          <span className="absolute -bottom-1 left-0 w-0 h-[0.5px] bg-black group-hover:w-full transition-all duration-300"></span>
+                        </Link>
+                      </h3>
+                      <p className="text-gray-800 text-sm font-medium mt-1">
+                        {product.price.toLocaleString("vi-VN")} đ
+                        {product.discount && (
+                          <span className="text-red-500 ml-2">
+                            (-{((product.discount / product.price) * 100).toFixed(0)}%)
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+
+            {!loading && !error && filteredProducts.length === 0 && (
+              <div className="text-center text-gray-600 py-16">
+                <p className="mb-6 text-lg font-light">
+                  {language === "vi" ? "Không có sản phẩm trong danh mục này" : "No products in this category"}
+                </p>
+                <button
+                  onClick={() => setActiveTab("all")}
+                  className="px-8 py-3 bg-gray-900 text-white text-xs uppercase tracking-widest font-light hover:bg-black transition-all"
+                >
+                  {language === "vi" ? "Xem Tất Cả Sản Phẩm" : "View All Products"}
+                </button>
+              </div>
+            )}
+
+            <div className="text-center mt-12">
+              <Link
+                href="/products"
+                className="group inline-block px-8 py-3 border border-gray-900 text-gray-900 text-xs uppercase tracking-widest font-light hover:bg-gray-900 hover:text-white transition-all duration-300"
+              >
+                {language === "vi" ? "Xem Tất Cả Sản Phẩm" : "View All Products"}
+                <ArrowRight
+                  size={16}
+                  className="inline-block ml-2 transform group-hover:translate-x-2 transition-transform duration-300"
+                />
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Testimonials */}
+        <div className="py-24 bg-white relative">
+          <div className="absolute inset-0 bg-[url('/images/texture.png')] opacity-5"></div>
+          <div className="container max-w-7xl mx-auto px-4 relative">
+            <motion.div className="text-center mb-16" {...fadeInUp} viewport={{ once: true }}>
+              <span className="text-xs uppercase tracking-widest text-gray-600 mb-3 block">
+                {language === "vi" ? "Ý Kiến Khách Hàng" : "What They Say"}
+              </span>
+              <h2 className="text-4xl md:text-5xl text-black font-cinzel font-bold mb-4">
+                {language === "vi" ? "Nhận Xét" : "Testimonials"}
+              </h2>
+              <span className="block w-16 h-[1px] bg-gray-900 mx-auto"></span>
+            </motion.div>
+            <motion.div
+              className="max-w-2xl mx-auto text-center"
+              key={testimonialIndex}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Image
+                src={testimonials[testimonialIndex].avatar}
+                alt={testimonials[testimonialIndex].name}
+                width={60}
+                height={60}
+                className="rounded-full mx-auto mb-6"
+              />
+              <p className="text-lg italic text-gray-600 mb-6 font-light">{`"${testimonials[testimonialIndex].quote}"`}</p>
+              <p className="text-sm font-cinzel font-medium">{testimonials[testimonialIndex].name}</p>
+              <p className="text-sm text-gray-500 font-light">{testimonials[testimonialIndex].role}</p>
+            </motion.div>
+            <div className="flex justify-center space-x-3 mt-8">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setTestimonialIndex(index)}
+                  className={`h-2 w-2 rounded-full ${
+                    testimonialIndex === index ? "bg-gray-900" : "bg-gray-300"
+                  }`}
+                  aria-label={`Go to testimonial ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Newsletter */}
+        <div className="bg-gray-900 text-white py-24">
+          <div className="container max-w-7xl mx-auto px-4">
+            <motion.div className="max-w-xl mx-auto text-center" {...fadeInUp} viewport={{ once: true }}>
+              <h2 className="text-3xl md:text-4xl font-cinzel font-bold mb-4">
+                {language === "vi" ? "Đăng Ký Bản Tin" : "Join Our Newsletter"}
+              </h2>
+              <p className="text-gray-300 mb-8 text-lg font-light">
+                {language === "vi"
+                  ? "Nhận thông tin về các bộ sưu tập mới và ưu đãi độc quyền"
+                  : "Receive updates on new collections and exclusive offers"}
+              </p>
+              <form className="relative mb-6">
+                <input
+                  type="email"
+                  placeholder={language === "vi" ? "Email của bạn" : "Your email"}
+                  className="bg-transparent border-0 border-b border-gray-400 px-0 py-3 pr-10 w-full text-white focus:outline-none focus:border-white text-sm font-light transition-all duration-300"
+                  required
+                  aria-label="Email address"
+                />
+                <button
+                  type="submit"
+                  className="absolute right-0 top-0 h-full text-gray-400 hover:text-white transition-all duration-300 transform-gpu hover:scale-105"
+                  aria-label="Subscribe"
+                >
+                  <ArrowRight size={24} strokeWidth={1.5} />
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Quick View Modal */}
+        <AnimatePresence>
+          {quickViewProduct && (
+            <motion.div
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
+              onClick={closeQuickView}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                className="w-full max-w-4xl bg-white p-8 overflow-auto max-h-[90vh] rounded-lg relative"
+                onClick={(e) => e.stopPropagation()}
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                transition={{ duration: 0.4, type: "spring" }}
+              >
+                <button
+                  onClick={closeQuickView}
+                  className="absolute right-4 top-4 text-gray-500 hover:text-gray-900 transition-all duration-300"
+                  aria-label="Close Quick View"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="aspect-square relative bg-gray-100 rounded-lg">
+                    <Image
+                      src={quickViewProduct.image}
+                      alt={quickViewProduct.name}
+                      fill
+                      sizes="50vw"
+                      className="object-cover rounded-lg"
+                    />
+                    {quickViewProduct.isNew && (
+                      <div className="absolute top-2 left-2 bg-black text-white px-3 py-1 text-xs uppercase tracking-widest font-light">
+                        {language === "vi" ? "Mới" : "New"}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col justify-between">
+                    <div>
+                      <h3 className="text-2xl font-cinzel font-bold mb-2">{quickViewProduct.name}</h3>
+                      <p className="text-xl text-gray-900 mb-6 font-medium">
+                        {quickViewProduct.price.toLocaleString("vi-VN")} đ
+                        {quickViewProduct.discount && (
+                          <span className="text-red-500 ml-2">
+                            (-{((quickViewProduct.discount / quickViewProduct.price) * 100).toFixed(0)}%)
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-gray-600 mb-6 leading-relaxed font-light">{quickViewProduct.description}</p>
+                      <div className="mb-6">
+                        <h4 className="font-medium mb-3 text-gray-900">
+                          {language === "vi" ? "Kích Cỡ" : "Size"}
+                        </h4>
+                        <div className="flex gap-2">
+                          {quickViewProduct.size.split(",").map((size) => (
+                            <button
+                              key={size}
+                              className="w-12 h-12 border border-gray-200 flex items-center justify-center hover:border-gray-900 transition-all font-light text-sm"
+                              aria-label={`Select size ${size.trim()}`}
+                            >
+                              {size.trim()}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="mb-8">
+                        <h4 className="font-medium mb-3 text-gray-900">
+                          {language === "vi" ? "Số Lượng" : "Quantity"}
+                        </h4>
+                        <div className="flex border border-gray-200 w-36">
+                          <button
+                            className="w-12 h-12 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-all"
+                            onClick={decreaseQuantity}
+                            aria-label="Decrease quantity"
+                          >
+                            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path
+                                fillRule="evenodd"
+                                d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </button>
+                          <div className="flex-grow h-12 flex items-center justify-center border-x border-gray-200 font-medium">
+                            {quantity}
+                          </div>
+                          <button
+                            className="w-12 h-12 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-all"
+                            onClick={increaseQuantity}
+                            aria-label="Increase quantity"
+                          >
+                            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path
+                                fillRule="evenodd"
+                                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-4">
+                      <button
+                        onClick={() => {
+                          addToCartHandler(quickViewProduct, quantity);
+                          closeQuickView();
+                        }}
+                        className="flex-grow py-4 bg-gray-900 text-white text-xs uppercase tracking-widest font-light hover:bg-black transition-all"
+                        aria-label="Add to Cart"
+                      >
+                        {language === "vi" ? "Thêm Vào Giỏ" : "Add to Cart"}
+                      </button>
+                      <button
+                        onClick={() => toggleWishlist(quickViewProduct.id)}
+                        className="w-14 h-14 border border-gray-200 flex items-center justify-center hover:border-gray-900 transition-all"
+                        aria-label="Add to Wishlist"
+                      >
+                        <svg
+                          className={`h-6 w-6 ${
+                            wishlist.has(quickViewProduct.id) ? "text-red-500 fill-red-500" : "text-gray-700"
+                          }`}
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          fill="none"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={wishlist.has(quickViewProduct.id) ? 0 : 1.5}
+                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Cart Notification */}
+        <AnimatePresence>
+          {cartNotification && (
+            <motion.div
+              className="fixed bottom-4 right-4 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 z-50"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                />
+              </svg>
+              <span>{language === "vi" ? "Đã thêm vào giỏ hàng!" : "Added to cart!"}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Back to Top Button */}
+        <AnimatePresence>
+          {showBackToTop && (
+            <motion.button
+              onClick={scrollToTop}
+              className="fixed bottom-8 right-8 w-12 h-12 bg-gray-900 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-black transition-all duration-300 z-50"
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0 }}
+              aria-label="Back to Top"
+            >
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </div>
+    </>
+  );
+}
+
+// Error Boundary
+import { Component } from "react";
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+import type { PropsWithChildren } from "react";
+
+class ErrorBoundary extends Component<PropsWithChildren, ErrorBoundaryState> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="text-center py-16">
+          <h2 className="text-2xl font-cinzel font-bold text-red-600">Something went wrong.</h2>
+          <p className="mt-4 text-gray-600 font-light">Please try refreshing the page.</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function HomePageWithErrorBoundary() {
+  return (
+    <ErrorBoundary>
+      <HomePage />
+    </ErrorBoundary>
   );
 }
