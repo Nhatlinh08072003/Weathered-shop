@@ -7,7 +7,7 @@
 // import { motion, AnimatePresence } from "framer-motion";
 // import Head from "next/head";
 // import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
-// import { useCart } from "@/lib/CartContext"; // Import useCart from CartContext
+// import { useCart } from "@/lib/CartContext";
 
 // // Define Product interface
 // interface Product {
@@ -117,11 +117,12 @@
 //   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 //   const [activeTab, setActiveTab] = useState("all");
 //   const [quantity, setQuantity] = useState(1);
+//   const [selectedSize, setSelectedSize] = useState<string>(""); // Thêm trạng thái chọn kích cỡ
 //   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
 //   const [showBackToTop, setShowBackToTop] = useState(false);
 //   const bannerRef = useRef<HTMLDivElement>(null);
 //   const [language, setLanguage] = useState<'vi' | 'en'>('vi');
-//   const { addToCart } = useCart(); // Use CartContext
+//   const { addToCart } = useCart();
 
 //   // Animation variants
 //   const fadeInUp = {
@@ -235,7 +236,12 @@
 //       const img = new window.Image();
 //       img.src = category.image;
 //     });
-//   }, []);
+//     // Preload product images for Quick View
+//     products.forEach((product) => {
+//       const img = new window.Image();
+//       img.src = product.image;
+//     });
+//   }, [products]);
 
 //   // Memoized filtered products
 //   const filteredProducts = useMemo(() => {
@@ -267,7 +273,7 @@
 //   const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
 //   const goToSlide = (index: number) => setCurrentIndex(index);
 
-//   const addToCartHandler = (product: Product, quantity: number = 1, e?: React.MouseEvent) => {
+//   const addToCartHandler = (product: Product, quantity: number = 1, size: string = "", e?: React.MouseEvent) => {
 //     e?.preventDefault();
 //     e?.stopPropagation();
 //     addToCart({
@@ -276,7 +282,7 @@
 //       price: product.price,
 //       image: product.image,
 //       quantity,
-//       size: ""
+//       size,
 //     });
 //     setCartNotification(true);
 //     setTimeout(() => setCartNotification(false), 3000);
@@ -287,11 +293,13 @@
 //     e?.stopPropagation();
 //     setQuickViewProduct(product);
 //     setQuantity(1);
+//     setSelectedSize(""); // Reset kích cỡ khi mở Quick View
 //     document.body.style.overflow = "hidden";
 //   };
 
 //   const closeQuickView = () => {
 //     setQuickViewProduct(null);
+//     setSelectedSize("");
 //     document.body.style.overflow = "auto";
 //   };
 
@@ -627,7 +635,7 @@
 //                         <Link href={`/products/${product.id}`} className="block relative h-full w-full">
 //                           <Image
 //                             src={product.image}
-//                             alt={product.name}
+//                             alt={`${product.name} - WEATHERED`}
 //                             fill
 //                             sizes="(max-width: 768px) 50vw, 25vw"
 //                             className="object-cover w-full h-full transition-all duration-700 group-hover:scale-105"
@@ -690,7 +698,7 @@
 //                         </motion.div>
 
 //                         <motion.button
-//                           onClick={(e) => addToCartHandler(product, 1, e)}
+//                           onClick={(e) => addToCartHandler(product, 1, "", e)}
 //                           className="absolute bottom-0 left-0 right-0 py-3 bg-black text-white text-xs uppercase tracking-widest font-light hover:bg-gray-900 transition-all"
 //                           initial={{ y: "100%" }}
 //                           animate={{ y: hoveredProduct === product.id ? 0 : "100%" }}
@@ -818,7 +826,7 @@
 //                       <Link href={`/products/${product.id}`} className="block relative h-full w-full">
 //                         <Image
 //                           src={product.image}
-//                           alt={product.name}
+//                           alt={`${product.name} - WEATHERED`}
 //                           fill
 //                           sizes="(max-width: 768px) 50vw, 25vw"
 //                           className="object-cover w-full h-full transition-all duration-700 group-hover:scale-105"
@@ -881,7 +889,7 @@
 //                       </motion.div>
 
 //                       <motion.button
-//                         onClick={(e) => addToCartHandler(product, 1, e)}
+//                         onClick={(e) => addToCartHandler(product, 1, "", e)}
 //                         className="absolute bottom-0 left-0 right-0 py-3 bg-black text-white text-xs uppercase tracking-widest font-light hover:bg-gray-900 transition-all"
 //                         initial={{ y: "100%" }}
 //                         animate={{ y: hoveredProduct === product.id ? 0 : "100%" }}
@@ -1068,7 +1076,7 @@
 //                   <div className="aspect-square relative bg-gray-100 rounded-lg">
 //                     <Image
 //                       src={quickViewProduct.image}
-//                       alt={quickViewProduct.name}
+//                       alt={`${quickViewProduct.name} - WEATHERED`}
 //                       fill
 //                       sizes="50vw"
 //                       className="object-cover rounded-lg"
@@ -1100,7 +1108,10 @@
 //                           {quickViewProduct.size.split(",").map((size) => (
 //                             <button
 //                               key={size}
-//                               className="w-12 h-12 border border-gray-200 flex items-center justify-center hover:border-gray-900 transition-all font-light text-sm"
+//                               onClick={() => setSelectedSize(size.trim())}
+//                               className={`w-12 h-12 border flex items-center justify-center hover:border-gray-900 transition-all font-light text-sm ${
+//                                 selectedSize === size.trim() ? "border-gray-900 bg-gray-100" : "border-gray-200"
+//                               }`}
 //                               aria-label={`Select size ${size.trim()}`}
 //                             >
 //                               {size.trim()}
@@ -1148,7 +1159,11 @@
 //                     <div className="flex gap-4">
 //                       <button
 //                         onClick={() => {
-//                           addToCartHandler(quickViewProduct, quantity);
+//                           if (!selectedSize) {
+//                             alert(language === 'vi' ? "Vui lòng chọn kích cỡ." : "Please select a size.");
+//                             return;
+//                           }
+//                           addToCartHandler(quickViewProduct, quantity, selectedSize);
 //                           closeQuickView();
 //                         }}
 //                         className="flex-grow py-4 bg-gray-900 text-white text-xs uppercase tracking-widest font-light hover:bg-black transition-all"
@@ -1265,15 +1280,15 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import Head from "next/head";
 import { motion, AnimatePresence } from "framer-motion";
+import Head from "next/head";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCart } from "@/lib/CartContext";
+import { cinzel, lora } from "@/lib/fonts";
 
 // Define Product interface
 interface Product {
   id: string;
-  slug: string;
   name: string;
   image: string;
   size: string;
@@ -1288,10 +1303,9 @@ interface Product {
   isFeatured?: boolean;
 }
 
-// Define raw product data from API
-interface RawProduct {
+// Define API Product interface for raw API data
+interface ApiProduct {
   _id: string;
-  slug?: string;
   name: string;
   images: string[];
   size: string;
@@ -1299,7 +1313,7 @@ interface RawProduct {
   category: string;
   collection?: string;
   price: number;
-  discount?: number;
+  discount?: number | null;
   createdAt: string;
 }
 
@@ -1350,7 +1364,7 @@ const categories = [
   },
 ];
 
-// Testimonials data
+// Testimonials data with curly quotes
 const testimonials = [
   {
     name: "Sophie Laurent",
@@ -1394,10 +1408,11 @@ function HomePage() {
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [activeTab, setActiveTab] = useState("all");
   const [quantity, setQuantity] = useState(1);
+  const [selectedSize, setSelectedSize] = useState<string>("");
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const bannerRef = useRef<HTMLDivElement>(null);
-  const [language, setLanguage] = useState<"vi" | "en">("vi");
+  const [language, setLanguage] = useState<'vi' | 'en'>('vi');
   const { addToCart } = useCart();
 
   // Animation variants
@@ -1431,7 +1446,7 @@ function HomePage() {
 
   // Sync language
   useEffect(() => {
-    const savedLanguage = localStorage.getItem("language") as "vi" | "en" | null;
+    const savedLanguage = localStorage.getItem('language') as 'vi' | 'en' | null;
     if (savedLanguage) {
       setLanguage(savedLanguage);
     }
@@ -1440,8 +1455,8 @@ function HomePage() {
       setLanguage(event.detail.language);
     };
 
-    window.addEventListener("languageChange", handleLanguageChange as EventListener);
-    return () => window.removeEventListener("languageChange", handleLanguageChange as EventListener);
+    window.addEventListener('languageChange', handleLanguageChange as EventListener);
+    return () => window.removeEventListener('languageChange', handleLanguageChange as EventListener);
   }, []);
 
   // Handle scroll
@@ -1461,28 +1476,24 @@ function HomePage() {
         const response = await fetch("/api/products");
         if (!response.ok) throw new Error("Failed to fetch products");
         const data = await response.json();
-        const mappedProducts: Product[] = data.products
-          .filter((product: RawProduct) => product._id && product.name)
-          .map((product: RawProduct) => ({
-            id: product._id.toString(),
-            slug: product.slug || product._id.toString(),
-            name: product.name,
-            image: product.images[0] || "/placeholder/300x400",
-            size: product.size,
-            description: product.description,
-            category: product.category,
-            collection: product.collection,
-            price: product.price,
-            discount: product.discount,
-            images: product.images,
-            createdAt: product.createdAt,
-            isNew: new Date(product.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-            isFeatured: !!product.discount,
-          }));
+        const mappedProducts: Product[] = data.products.map((product: ApiProduct) => ({
+          id: product._id.toString(),
+          name: product.name,
+          image: product.images[0] || "/placeholder/300x400",
+          size: product.size,
+          description: product.description,
+          category: product.category,
+          collection: product.collection,
+          price: product.price,
+          discount: product.discount,
+          images: product.images,
+          createdAt: product.createdAt,
+          isNew: new Date(product.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+          isFeatured: !!product.discount,
+        }));
         setProducts(mappedProducts);
-      } catch (error: unknown) {
-        setError(error instanceof Error ? error.message : "Failed to load products");
-        console.error("Fetch products error:", error);
+      } catch {
+        setError("Failed to load products");
       } finally {
         setLoading(false);
       }
@@ -1516,7 +1527,11 @@ function HomePage() {
       const img = new window.Image();
       img.src = category.image;
     });
-  }, []);
+    products.forEach((product) => {
+      const img = new window.Image();
+      img.src = product.image;
+    });
+  }, [products]);
 
   // Memoized filtered products
   const filteredProducts = useMemo(() => {
@@ -1548,7 +1563,7 @@ function HomePage() {
   const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
   const goToSlide = (index: number) => setCurrentIndex(index);
 
-  const addToCartHandler = (product: Product, quantity: number = 1, e?: React.MouseEvent) => {
+  const addToCartHandler = (product: Product, quantity: number = 1, size: string = "", e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
     addToCart({
@@ -1557,7 +1572,7 @@ function HomePage() {
       price: product.price,
       image: product.image,
       quantity,
-      size: "",
+      size,
     });
     setCartNotification(true);
     setTimeout(() => setCartNotification(false), 3000);
@@ -1568,11 +1583,13 @@ function HomePage() {
     e?.stopPropagation();
     setQuickViewProduct(product);
     setQuantity(1);
+    setSelectedSize("");
     document.body.style.overflow = "hidden";
   };
 
   const closeQuickView = () => {
     setQuickViewProduct(null);
+    setSelectedSize("");
     document.body.style.overflow = "auto";
   };
 
@@ -1607,9 +1624,17 @@ function HomePage() {
   return (
     <>
       <Head>
+        <title>WEATHERED | Premium Fashion Collections</title>
+        <meta
+          name="description"
+          content="Discover premium fashion collections with a timeless vintage and archive aesthetic."
+        />
+        <meta name="keywords" content="fashion, luxury, vintage, archive, weathered, premium" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       </Head>
-      <div className="bg-white mt-[50px] font-lora">
+
+      <div className={`bg-white mt-[50px] ${cinzel.variable} ${lora.variable}`}>
         {/* Hero Banner Slider */}
         <div className="relative w-full h-screen max-h-[90vh] overflow-hidden">
           <div
@@ -1646,7 +1671,7 @@ function HomePage() {
                       transition={{ duration: 0.8, delay: 0.3 }}
                     >
                       <p className="text-xs uppercase tracking-widest mb-3 font-light">
-                        {language === "vi" ? "Xuân/Hè 2025" : "Spring/Summer 2025"}
+                        {language === 'vi' ? 'Xuân/Hè 2025' : 'Spring/Summer 2025'}
                       </p>
                       <h1 className="text-4xl md:text-5xl font-cinzel font-bold mb-6 leading-tight">
                         {banner.title}
@@ -1701,7 +1726,7 @@ function HomePage() {
         </div>
 
         {/* Unique Selling Points */}
-        <div className="bg-white text-black py-16 border-b border-gray-100">
+        <div className="bg-white py-16 border-b border-gray-100">
           <div className="container max-w-7xl mx-auto px-4">
             <motion.div
               className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12"
@@ -1712,8 +1737,8 @@ function HomePage() {
             >
               {[
                 {
-                  title: language === "vi" ? "Chất Liệu Bền Vững" : "Sustainable Materials",
-                  description: language === "vi" ? "Được tìm nguồn cung ứng có đạo đức" : "Ethically sourced materials",
+                  title: language === 'vi' ? 'Chất Liệu Bền Vững' : 'Sustainable Materials',
+                  description: language === 'vi' ? 'Được tìm nguồn cung ứng có đạo đức' : 'Ethically sourced materials',
                   icon: (
                     <svg className="h-8 w-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
@@ -1726,8 +1751,8 @@ function HomePage() {
                   ),
                 },
                 {
-                  title: language === "vi" ? "Thủ Công Tinh Tế" : "Artisan Craftsmanship",
-                  description: language === "vi" ? "Mỗi sản phẩm được làm thủ công tỉ mỉ" : "Handcrafted with precision",
+                  title: language === 'vi' ? 'Thủ Công Tinh Tế' : 'Artisan Craftsmanship',
+                  description: language === 'vi' ? 'Mỗi sản phẩm được làm thủ công tỉ mỉ' : 'Handcrafted with precision',
                   icon: (
                     <svg className="h-8 w-8 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
@@ -1740,8 +1765,8 @@ function HomePage() {
                   ),
                 },
                 {
-                  title: language === "vi" ? "Vận Chuyển Toàn Cầu" : "Global Shipping",
-                  description: language === "vi" ? "Miễn phí cho đơn trên 500k VND" : "Free on orders over 500k VND",
+                  title: language === 'vi' ? 'Vận Chuyển Toàn Cầu' : 'Global Shipping',
+                  description: language === 'vi' ? 'Miễn phí cho đơn trên 500k VND' : 'Free on orders over 500k VND',
                   icon: (
                     <svg className="h-8 w-8 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
@@ -1754,7 +1779,11 @@ function HomePage() {
                   ),
                 },
               ].map((usp, index) => (
-                <motion.div key={index} className="text-center" variants={fadeInItem}>
+                <motion.div
+                  key={index}
+                  className="text-center"
+                  variants={fadeInItem}
+                >
                   <div className="mb-4">{usp.icon}</div>
                   <h3 className="text-lg font-cinzel font-medium mb-2">{usp.title}</h3>
                   <p className="text-gray-600 text-sm font-light">{usp.description}</p>
@@ -1767,12 +1796,16 @@ function HomePage() {
         {/* Shop by Collection */}
         <div className="py-24 bg-[#f9f9f9]">
           <div className="container max-w-7xl mx-auto px-4">
-            <motion.div className="text-center mb-16" {...fadeInUp} viewport={{ once: true }}>
+            <motion.div
+              className="text-center mb-16"
+              {...fadeInUp}
+              viewport={{ once: true }}
+            >
               <span className="text-xs uppercase tracking-widest text-gray-600 mb-3 block">
-                {language === "vi" ? "Khám Phá" : "Explore"}
+                {language === 'vi' ? 'Khám Phá' : 'Explore'}
               </span>
-              <h2 className="text-4xl md:text-5xl text-black font-cinzel font-bold mb-4">
-                {language === "vi" ? "Bộ Sưu Tập" : "Collections"}
+              <h2 className="text-4xl md:text-5xl font-cinzel font-bold mb-4">
+                {language === 'vi' ? 'Bộ Sưu Tập' : 'Collections'}
               </h2>
               <span className="block w-16 h-[1px] bg-gray-900 mx-auto"></span>
             </motion.div>
@@ -1784,7 +1817,11 @@ function HomePage() {
               viewport={{ once: true }}
             >
               {categories.map((category, index) => (
-                <motion.div key={index} className="relative group cursor-pointer" variants={fadeInItem}>
+                <motion.div
+                  key={index}
+                  className="relative group cursor-pointer"
+                  variants={fadeInItem}
+                >
                   <div className="relative w-full h-96 rounded-full overflow-hidden">
                     <Image
                       src={category.image}
@@ -1813,7 +1850,7 @@ function HomePage() {
                         href={category.link}
                         className="group inline-block px-6 py-2 border border-white text-white text-xs uppercase tracking-widest font-light hover:bg-white hover:text-black transition-all duration-300"
                       >
-                        {language === "vi" ? "Mua Sắm Ngay" : "Shop Now"}
+                        {language === 'vi' ? 'Mua Sắm Ngay' : 'Shop Now'}
                         <ArrowRight
                           size={16}
                           className="inline-block ml-2 transform group-hover:translate-x-2 transition-transform duration-300"
@@ -1830,12 +1867,16 @@ function HomePage() {
         {/* New Arrivals */}
         <div className="py-24 bg-white">
           <div className="container max-w-7xl mx-auto px-4">
-            <motion.div className="text-center mb-16" {...fadeInUp} viewport={{ once: true }}>
+            <motion.div
+              className="text-center mb-16"
+              {...fadeInUp}
+              viewport={{ once: true }}
+            >
               <span className="text-xs uppercase tracking-widest text-gray-600 mb-3 block">
-                {language === "vi" ? "Mới Về" : "Just Arrived"}
+                {language === 'vi' ? 'Mới Về' : 'Just Arrived'}
               </span>
-              <h2 className="text-4xl md:text-5xl  text-black font-cinzel font-bold mb-4">
-                {language === "vi" ? "Hàng Mới Về" : "New Arrivals"}
+              <h2 className="text-4xl md:text-5xl font-cinzel font-bold mb-4">
+                {language === 'vi' ? 'Hàng Mới Về' : 'New Arrivals'}
               </h2>
               <span className="block w-16 h-[1px] bg-gray-900 mx-auto"></span>
             </motion.div>
@@ -1875,10 +1916,10 @@ function HomePage() {
                       onMouseLeave={() => setHoveredProduct(null)}
                     >
                       <div className="aspect-[2/3] relative overflow-hidden rounded-lg bg-gray-100">
-                        <Link href={`/products/${product.slug}`} className="block relative h-full w-full">
+                        <Link href={`/products/${product.id}`} className="block relative h-full w-full">
                           <Image
                             src={product.image}
-                            alt={product.name}
+                            alt={`${product.name} - WEATHERED`}
                             fill
                             sizes="(max-width: 768px) 50vw, 25vw"
                             className="object-cover w-full h-full transition-all duration-700 group-hover:scale-105"
@@ -1886,7 +1927,7 @@ function HomePage() {
                           />
                           {product.isNew && (
                             <div className="absolute top-2 left-2 bg-black text-white px-3 py-1 text-xs uppercase tracking-widest font-light">
-                              {language === "vi" ? "Mới" : "New"}
+                              {language === 'vi' ? 'Mới' : 'New'}
                             </div>
                           )}
                         </Link>
@@ -1941,20 +1982,20 @@ function HomePage() {
                         </motion.div>
 
                         <motion.button
-                          onClick={(e) => addToCartHandler(product, 1, e)}
+                          onClick={(e) => addToCartHandler(product, 1, "", e)}
                           className="absolute bottom-0 left-0 right-0 py-3 bg-black text-white text-xs uppercase tracking-widest font-light hover:bg-gray-900 transition-all"
                           initial={{ y: "100%" }}
                           animate={{ y: hoveredProduct === product.id ? 0 : "100%" }}
                           transition={{ duration: 0.3 }}
                           aria-label="Add to Cart"
                         >
-                          {language === "vi" ? "Thêm Vào Giỏ" : "Add to Cart"}
+                          {language === 'vi' ? 'Thêm Vào Giỏ' : 'Add to Cart'}
                         </motion.button>
                       </div>
 
                       <div className="mt-4 text-center">
                         <h3 className="text-sm font-medium">
-                          <Link href={`/products/${product.slug}`} className="group relative inline-block">
+                          <Link href={`/products/${product.id}`} className="group relative inline-block">
                             <span className="text-gray-800 hover:text-black transition-colors duration-300">
                               {product.name}
                             </span>
@@ -1980,7 +2021,7 @@ function HomePage() {
                 href="/products/new"
                 className="group inline-block px-8 py-3 border border-gray-900 text-gray-900 text-xs uppercase tracking-widest font-light hover:bg-gray-900 hover:text-white transition-all duration-300"
               >
-                {language === "vi" ? "Xem Tất Cả Hàng Mới" : "View All New Arrivals"}
+                {language === 'vi' ? 'Xem Tất Cả Hàng Mới' : 'View All New Arrivals'}
                 <ArrowRight
                   size={16}
                   className="inline-block ml-2 transform group-hover:translate-x-2 transition-transform duration-300"
@@ -1993,12 +2034,16 @@ function HomePage() {
         {/* Trending Now */}
         <div className="py-24 bg-[#f9f9f9]">
           <div className="container max-w-7xl mx-auto px-4">
-            <motion.div className="text-center mb-16" {...fadeInUp} viewport={{ once: true }}>
+            <motion.div
+              className="text-center mb-16"
+              {...fadeInUp}
+              viewport={{ once: true }}
+            >
               <span className="text-xs uppercase tracking-widest text-gray-600 mb-3 block">
-                {language === "vi" ? "Được Yêu Thích" : "Curated Picks"}
+                {language === 'vi' ? 'Được Yêu Thích' : 'Curated Picks'}
               </span>
-              <h2 className="text-4xl md:text-5xl text-black font-cinzel font-bold mb-4">
-                {language === "vi" ? "Xu Hướng Hiện Nay" : "Trending Now"}
+              <h2 className="text-4xl md:text-5xl font-cinzel font-bold mb-4">
+                {language === 'vi' ? 'Xu Hướng Hiện Nay' : 'Trending Now'}
               </h2>
               <span className="block w-16 h-[1px] bg-gray-900 mx-auto"></span>
             </motion.div>
@@ -2019,14 +2064,10 @@ function HomePage() {
                   } rounded-full`}
                   variants={fadeInItem}
                 >
-                  {tab === "all"
-                    ? language === "vi"
-                      ? "Tất Cả"
-                      : "All"
-                    : tab === "featured"
-                    ? language === "vi"
-                      ? "Nổi Bật"
-                      : "Featured"
+                  {tab === 'all'
+                    ? language === 'vi' ? 'Tất Cả' : 'All'
+                    : tab === 'featured'
+                    ? language === 'vi' ? 'Nổi Bật' : 'Featured'
                     : tab.charAt(0).toUpperCase() + tab.slice(1)}
                 </motion.button>
               ))}
@@ -2066,10 +2107,10 @@ function HomePage() {
                     onMouseLeave={() => setHoveredProduct(null)}
                   >
                     <div className="aspect-[2/3] relative overflow-hidden rounded-lg bg-gray-100">
-                      <Link href={`/products/${product.slug}`} className="block relative h-full w-full">
+                      <Link href={`/products/${product.id}`} className="block relative h-full w-full">
                         <Image
                           src={product.image}
-                          alt={product.name}
+                          alt={`${product.name} - WEATHERED`}
                           fill
                           sizes="(max-width: 768px) 50vw, 25vw"
                           className="object-cover w-full h-full transition-all duration-700 group-hover:scale-105"
@@ -2077,7 +2118,7 @@ function HomePage() {
                         />
                         {product.isNew && (
                           <div className="absolute top-2 left-2 bg-black text-white px-3 py-1 text-xs uppercase tracking-widest font-light">
-                            {language === "vi" ? "Mới" : "New"}
+                            {language === 'vi' ? 'Mới' : 'New'}
                           </div>
                         )}
                       </Link>
@@ -2132,20 +2173,20 @@ function HomePage() {
                       </motion.div>
 
                       <motion.button
-                        onClick={(e) => addToCartHandler(product, 1, e)}
+                        onClick={(e) => addToCartHandler(product, 1, "", e)}
                         className="absolute bottom-0 left-0 right-0 py-3 bg-black text-white text-xs uppercase tracking-widest font-light hover:bg-gray-900 transition-all"
                         initial={{ y: "100%" }}
                         animate={{ y: hoveredProduct === product.id ? 0 : "100%" }}
                         transition={{ duration: 0.3 }}
                         aria-label="Add to Cart"
                       >
-                        {language === "vi" ? "Thêm Vào Giỏ" : "Add to Cart"}
+                        {language === 'vi' ? 'Thêm Vào Giỏ' : 'Add to Cart'}
                       </motion.button>
                     </div>
 
                     <div className="mt-4 text-center">
                       <h3 className="text-sm font-medium">
-                        <Link href={`/products/${product.slug}`} className="group relative inline-block">
+                        <Link href={`/products/${product.id}`} className="group relative inline-block">
                           <span className="text-gray-800 hover:text-black transition-colors duration-300">
                             {product.name}
                           </span>
@@ -2169,13 +2210,13 @@ function HomePage() {
             {!loading && !error && filteredProducts.length === 0 && (
               <div className="text-center text-gray-600 py-16">
                 <p className="mb-6 text-lg font-light">
-                  {language === "vi" ? "Không có sản phẩm trong danh mục này" : "No products in this category"}
+                  {language === 'vi' ? 'Không có sản phẩm trong danh mục này' : 'No products in this category'}
                 </p>
                 <button
                   onClick={() => setActiveTab("all")}
                   className="px-8 py-3 bg-gray-900 text-white text-xs uppercase tracking-widest font-light hover:bg-black transition-all"
                 >
-                  {language === "vi" ? "Xem Tất Cả Sản Phẩm" : "View All Products"}
+                  {language === 'vi' ? 'Xem Tất Cả Sản Phẩm' : 'View All Products'}
                 </button>
               </div>
             )}
@@ -2185,7 +2226,7 @@ function HomePage() {
                 href="/products"
                 className="group inline-block px-8 py-3 border border-gray-900 text-gray-900 text-xs uppercase tracking-widest font-light hover:bg-gray-900 hover:text-white transition-all duration-300"
               >
-                {language === "vi" ? "Xem Tất Cả Sản Phẩm" : "View All Products"}
+                {language === 'vi' ? 'Xem Tất Cả Sản Phẩm' : 'View All Products'}
                 <ArrowRight
                   size={16}
                   className="inline-block ml-2 transform group-hover:translate-x-2 transition-transform duration-300"
@@ -2199,12 +2240,16 @@ function HomePage() {
         <div className="py-24 bg-white relative">
           <div className="absolute inset-0 bg-[url('/images/texture.png')] opacity-5"></div>
           <div className="container max-w-7xl mx-auto px-4 relative">
-            <motion.div className="text-center mb-16" {...fadeInUp} viewport={{ once: true }}>
+            <motion.div
+              className="text-center mb-16"
+              {...fadeInUp}
+              viewport={{ once: true }}
+            >
               <span className="text-xs uppercase tracking-widest text-gray-600 mb-3 block">
-                {language === "vi" ? "Ý Kiến Khách Hàng" : "What They Say"}
+                {language === 'vi' ? 'Ý Kiến Khách Hàng' : 'What They Say'}
               </span>
-              <h2 className="text-4xl md:text-5xl text-black font-cinzel font-bold mb-4">
-                {language === "vi" ? "Nhận Xét" : "Testimonials"}
+              <h2 className="text-4xl md:text-5xl font-cinzel font-bold mb-4">
+                {language === 'vi' ? 'Nhận Xét' : 'Testimonials'}
               </h2>
               <span className="block w-16 h-[1px] bg-gray-900 mx-auto"></span>
             </motion.div>
@@ -2223,7 +2268,7 @@ function HomePage() {
                 height={60}
                 className="rounded-full mx-auto mb-6"
               />
-              <p className="text-lg italic text-gray-600 mb-6 font-light">{`"${testimonials[testimonialIndex].quote}"`}</p>
+              <p className="text-lg italic text-gray-600 mb-6 font-light">{testimonials[testimonialIndex].quote}</p>
               <p className="text-sm font-cinzel font-medium">{testimonials[testimonialIndex].name}</p>
               <p className="text-sm text-gray-500 font-light">{testimonials[testimonialIndex].role}</p>
             </motion.div>
@@ -2245,19 +2290,23 @@ function HomePage() {
         {/* Newsletter */}
         <div className="bg-gray-900 text-white py-24">
           <div className="container max-w-7xl mx-auto px-4">
-            <motion.div className="max-w-xl mx-auto text-center" {...fadeInUp} viewport={{ once: true }}>
+            <motion.div
+              className="max-w-xl mx-auto text-center"
+              {...fadeInUp}
+              viewport={{ once: true }}
+            >
               <h2 className="text-3xl md:text-4xl font-cinzel font-bold mb-4">
-                {language === "vi" ? "Đăng Ký Bản Tin" : "Join Our Newsletter"}
+                {language === 'vi' ? 'Đăng Ký Bản Tin' : 'Join Our Newsletter'}
               </h2>
               <p className="text-gray-300 mb-8 text-lg font-light">
-                {language === "vi"
-                  ? "Nhận thông tin về các bộ sưu tập mới và ưu đãi độc quyền"
-                  : "Receive updates on new collections and exclusive offers"}
+                {language === 'vi'
+                  ? 'Nhận thông tin về các bộ sưu tập mới và ưu đãi độc quyền'
+                  : 'Receive updates on new collections and exclusive offers'}
               </p>
               <form className="relative mb-6">
                 <input
                   type="email"
-                  placeholder={language === "vi" ? "Email của bạn" : "Your email"}
+                  placeholder={language === 'vi' ? 'Email của bạn' : 'Your email'}
                   className="bg-transparent border-0 border-b border-gray-400 px-0 py-3 pr-10 w-full text-white focus:outline-none focus:border-white text-sm font-light transition-all duration-300"
                   required
                   aria-label="Email address"
@@ -2311,14 +2360,14 @@ function HomePage() {
                   <div className="aspect-square relative bg-gray-100 rounded-lg">
                     <Image
                       src={quickViewProduct.image}
-                      alt={quickViewProduct.name}
+                      alt={`${quickViewProduct.name} - WEATHERED`}
                       fill
                       sizes="50vw"
                       className="object-cover rounded-lg"
                     />
                     {quickViewProduct.isNew && (
                       <div className="absolute top-2 left-2 bg-black text-white px-3 py-1 text-xs uppercase tracking-widest font-light">
-                        {language === "vi" ? "Mới" : "New"}
+                        {language === 'vi' ? 'Mới' : 'New'}
                       </div>
                     )}
                   </div>
@@ -2337,13 +2386,16 @@ function HomePage() {
                       <p className="text-gray-600 mb-6 leading-relaxed font-light">{quickViewProduct.description}</p>
                       <div className="mb-6">
                         <h4 className="font-medium mb-3 text-gray-900">
-                          {language === "vi" ? "Kích Cỡ" : "Size"}
+                          {language === 'vi' ? 'Kích Cỡ' : 'Size'}
                         </h4>
                         <div className="flex gap-2">
                           {quickViewProduct.size.split(",").map((size) => (
                             <button
                               key={size}
-                              className="w-12 h-12 border border-gray-200 flex items-center justify-center hover:border-gray-900 transition-all font-light text-sm"
+                              onClick={() => setSelectedSize(size.trim())}
+                              className={`w-12 h-12 border flex items-center justify-center hover:border-gray-900 transition-all font-light text-sm ${
+                                selectedSize === size.trim() ? "border-gray-900 bg-gray-100" : "border-gray-200"
+                              }`}
                               aria-label={`Select size ${size.trim()}`}
                             >
                               {size.trim()}
@@ -2353,7 +2405,7 @@ function HomePage() {
                       </div>
                       <div className="mb-8">
                         <h4 className="font-medium mb-3 text-gray-900">
-                          {language === "vi" ? "Số Lượng" : "Quantity"}
+                          {language === 'vi' ? 'Số Lượng' : 'Quantity'}
                         </h4>
                         <div className="flex border border-gray-200 w-36">
                           <button
@@ -2391,13 +2443,17 @@ function HomePage() {
                     <div className="flex gap-4">
                       <button
                         onClick={() => {
-                          addToCartHandler(quickViewProduct, quantity);
+                          if (!selectedSize) {
+                            alert(language === 'vi' ? "Vui lòng chọn kích cỡ." : "Please select a size.");
+                            return;
+                          }
+                          addToCartHandler(quickViewProduct, quantity, selectedSize);
                           closeQuickView();
                         }}
                         className="flex-grow py-4 bg-gray-900 text-white text-xs uppercase tracking-widest font-light hover:bg-black transition-all"
                         aria-label="Add to Cart"
                       >
-                        {language === "vi" ? "Thêm Vào Giỏ" : "Add to Cart"}
+                        {language === 'vi' ? 'Thêm Vào Giỏ' : 'Add to Cart'}
                       </button>
                       <button
                         onClick={() => toggleWishlist(quickViewProduct.id)}
@@ -2446,7 +2502,7 @@ function HomePage() {
                   d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
                 />
               </svg>
-              <span>{language === "vi" ? "Đã thêm vào giỏ hàng!" : "Added to cart!"}</span>
+              <span>{language === 'vi' ? 'Đã thêm vào giỏ hàng!' : 'Added to cart!'}</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -2474,15 +2530,9 @@ function HomePage() {
 }
 
 // Error Boundary
-import { Component } from "react";
+import { Component, PropsWithChildren } from "react";
 
-interface ErrorBoundaryState {
-  hasError: boolean;
-}
-
-import type { PropsWithChildren } from "react";
-
-class ErrorBoundary extends Component<PropsWithChildren, ErrorBoundaryState> {
+class ErrorBoundary extends Component<PropsWithChildren> {
   state = { hasError: false };
 
   static getDerivedStateFromError() {
