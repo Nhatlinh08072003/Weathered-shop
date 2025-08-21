@@ -191,7 +191,7 @@ const CheckoutPage = () => {
   };
 
   return (
-    <div className="container mt-[100px] max-w-5xl mx-auto px-4 py-12">
+    <div className="container mt-[100px] text-black max-w-5xl mx-auto px-4 py-12">
       <h1 className="text-3xl font-light tracking-widest text-gray-900 font-[Cinzel,serif] mb-8">
         {content[language].checkoutTitle}
       </h1>

@@ -14,6 +14,7 @@ const AdminSidebar = () => {
     { name: 'Danh Mục', href: '/admin/categories', icon: <Tag size={20} /> },
     { name: 'Sản Phẩm', href: '/admin/products', icon: <Package size={20} /> },
     { name: 'Bộ Sưu Tập', href: '/admin/collections', icon: <Folder size={20} /> },
+    { name: 'Đơn Hàng', href: '/admin/orders', icon: <Folder size={20} /> },
   ];
 
   return (
