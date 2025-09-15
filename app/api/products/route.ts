@@ -37,7 +37,7 @@
 //     });
 //     console.log('Category map:', categoryMap);
 //     return categoryMap;
-//   } catch (error) {
+//   } catch {
 //     console.warn('Collection "categories" not found, falling back to distinct categories from products');
 //     const productsCollection = db.collection('products');
 //     const categories = await productsCollection.distinct('category');
@@ -65,6 +65,13 @@
 //   return collectionMap;
 // }
 
+// // Define the query type for MongoDB find operation
+// interface ProductQuery {
+//   $or?: Array<{ [key: string]: RegExp }>;
+//   category?: { $regex: string; $options: string };
+//   collection?: { $regex: string; $options: string };
+// }
+
 // export async function GET(request: NextRequest) {
 //   try {
 //     const { searchParams } = new URL(request.url);
@@ -79,7 +86,7 @@
 //     const db = await connectToDatabase();
 //     const productsCollection = db.collection('products');
 
-//     let query: any = {};
+//     const query: ProductQuery = {};
 
 //     // Handle search query
 //     if (search) {
@@ -114,8 +121,8 @@
 //     console.log('Found products:', products);
 
 //     return NextResponse.json({ products }, { status: 200, headers: { 'Cache-Control': 'no-store' } });
-//   } catch (error) {
-//     console.error('Get products error:', error);
+//   } catch {
+//     console.error('Get products error');
 //     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
 //   }
 // }
@@ -268,7 +275,7 @@
 //       return NextResponse.json({ message: 'Product not found' }, { status: 404 });
 //     }
 
-//     let uploadedUrls = existingProduct.images || [];
+//     const uploadedUrls: string[] = existingProduct.images || [];
 //     const images = formData.getAll('images').filter((item): item is File => item instanceof File);
 
 //     if (images.length > 0) {
@@ -393,7 +400,7 @@
 //     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
 //   }
 // }
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { connectToDatabase } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
@@ -459,15 +466,31 @@ async function getCollectionMap() {
   return collectionMap;
 }
 
-// Define the query type for MongoDB find operation
 interface ProductQuery {
   $or?: Array<{ [key: string]: RegExp }>;
   category?: { $regex: string; $options: string };
   collection?: { $regex: string; $options: string };
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest, context: { params?: Promise<{ id: string }> }) {
   try {
+    const db = await connectToDatabase();
+    const productsCollection = db.collection('products');
+
+    if (context?.params) {
+      // Handle single product retrieval by ID
+      const { id } = await context.params;
+      if (!ObjectId.isValid(id)) {
+        return NextResponse.json({ message: 'Invalid product ID' }, { status: 400 });
+      }
+      const product = await productsCollection.findOne({ _id: new ObjectId(id) });
+      if (!product) {
+        return NextResponse.json({ message: 'Product not found' }, { status: 404 });
+      }
+      return NextResponse.json(product, { status: 200 });
+    }
+
+    // Handle fetching all products with filters
     const { searchParams } = new URL(request.url);
     const categorySlug = searchParams.get('category') || 'all';
     const collectionSlug = searchParams.get('collection') || 'all';
@@ -477,12 +500,8 @@ export async function GET(request: NextRequest) {
     console.log('Requested collection slug:', collectionSlug);
     console.log('Search query:', search);
 
-    const db = await connectToDatabase();
-    const productsCollection = db.collection('products');
-
     const query: ProductQuery = {};
 
-    // Handle search query
     if (search) {
       const searchRegex = new RegExp(search, 'i');
       query.$or = [
@@ -493,7 +512,6 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    // Handle category filter
     if (categorySlug !== 'all') {
       const categoryMap = await getCategoryMap();
       const categoryName = categoryMap[categorySlug] || categorySlug.replace(/--/g, ' ');
@@ -501,7 +519,6 @@ export async function GET(request: NextRequest) {
       query.category = { $regex: `^${categoryName}$`, $options: 'i' };
     }
 
-    // Handle collection filter
     if (collectionSlug !== 'all') {
       const collectionMap = await getCollectionMap();
       const collectionName = collectionMap[collectionSlug] || collectionSlug.replace(/--/g, ' ');
@@ -515,8 +532,8 @@ export async function GET(request: NextRequest) {
     console.log('Found products:', products);
 
     return NextResponse.json({ products }, { status: 200, headers: { 'Cache-Control': 'no-store' } });
-  } catch {
-    console.error('Get products error');
+  } catch (error) {
+    console.error('Get products error:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }
@@ -551,6 +568,7 @@ export async function POST(request: NextRequest) {
     const collection = formData.get('collection')?.toString();
     const price = formData.get('price')?.toString();
     const discount = formData.get('discount')?.toString();
+    const status = formData.get('status')?.toString() as 'in_stock' | 'out_of_stock' | undefined;
 
     if (!name || !size || !description || !category || !price) {
       console.error('Missing required fields:', { name, size, description, category, price });
@@ -611,6 +629,7 @@ export async function POST(request: NextRequest) {
       discount: discount ? parseFloat(discount) : null,
       images: uploadedUrls,
       createdAt: new Date(),
+      status: status || 'in_stock',
     };
 
     console.log('Inserting new product:', newProduct);
@@ -654,6 +673,7 @@ export async function PUT(request: NextRequest) {
     const collection = formData.get('collection')?.toString();
     const price = formData.get('price')?.toString();
     const discount = formData.get('discount')?.toString();
+    const status = formData.get('status')?.toString() as 'in_stock' | 'out_of_stock' | undefined;
 
     if (!id || !name || !size || !description || !category || !price) {
       console.error('Missing required fields:', { id, name, size, description, category, price });
@@ -711,6 +731,7 @@ export async function PUT(request: NextRequest) {
       discount: discount ? parseFloat(discount) : null,
       images: uploadedUrls,
       updatedAt: new Date(),
+      status: status || existingProduct.status || 'in_stock',
     };
 
     console.log('Updating product:', updatedProduct);
@@ -730,6 +751,58 @@ export async function PUT(request: NextRequest) {
     );
   } catch (error) {
     console.error('Update product error:', error);
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    if (!token) {
+      console.error('No token provided');
+      return NextResponse.json({ message: 'No token provided' }, { status: 401 });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+      if (typeof decoded !== 'object' || decoded.role !== 'admin') {
+        console.error('Unauthorized: Admin access required');
+        return NextResponse.json({ message: 'Unauthorized: Admin access required' }, { status: 403 });
+      }
+    } catch (error) {
+      console.error('JWT verification error:', error);
+      return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
+    }
+
+    const { id, status } = await request.json();
+    if (!id || !status || !['in_stock', 'out_of_stock'].includes(status)) {
+      console.error('Invalid input:', { id, status });
+      return NextResponse.json({ message: 'Product ID and valid status (in_stock or out_of_stock) are required' }, { status: 400 });
+    }
+
+    const db = await connectToDatabase();
+    const productsCollection = db.collection('products');
+
+    const existingProduct = await productsCollection.findOne({ _id: new ObjectId(id) });
+    if (!existingProduct) {
+      console.error('Product not found:', id);
+      return NextResponse.json({ message: 'Product not found' }, { status: 404 });
+    }
+
+    const result = await productsCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { status, updatedAt: new Date() } }
+    );
+
+    if (result.modifiedCount === 0) {
+      console.error('Product not found or no changes made:', id);
+      return NextResponse.json({ message: 'Product not found or no changes made' }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: 'Product status updated successfully', status }, { status: 200 });
+  } catch (error) {
+    console.error('Update product status error:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }

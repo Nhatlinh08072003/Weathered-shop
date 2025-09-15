@@ -1,6 +1,9 @@
+
+// // export default ProductsPage;
 // "use client";
 // import { useEffect, useState } from 'react';
 // import { useRouter } from 'next/navigation';
+// import Image from 'next/image';
 // import AdminSidebar from '@/components/AdminSidebar';
 
 // interface User {
@@ -76,8 +79,8 @@
 //           } else {
 //             throw new Error(data.message || 'Invalid token');
 //           }
-//         } catch (err) {
-//           console.error('Token verification failed:', err);
+//         } catch {
+//           console.error('Token verification failed');
 //           localStorage.removeItem('token');
 //           localStorage.removeItem('user');
 //           router.push('/');
@@ -128,7 +131,7 @@
 //         } else {
 //           setError(collectionsData.message || 'Không thể tải bộ sưu tập');
 //         }
-//       } catch (error) {
+//       } catch {
 //         setError('Đã xảy ra lỗi khi tải dữ liệu');
 //       } finally {
 //         setIsLoading(false);
@@ -226,8 +229,8 @@
 //       } else {
 //         setError(data.message || 'Không thể xử lý sản phẩm');
 //       }
-//     } catch (error) {
-//       console.error('Frontend add product error:', error);
+//     } catch {
+//       console.error('Frontend add product error');
 //       setError('Đã xảy ra lỗi khi xử lý sản phẩm');
 //     }
 //   };
@@ -290,7 +293,7 @@
 //       } else {
 //         setError(data.message || 'Không thể xóa sản phẩm');
 //       }
-//     } catch (error) {
+//     } catch {
 //       setError('Đã xảy ra lỗi khi xóa sản phẩm');
 //     }
 //   };
@@ -321,7 +324,6 @@
 //   }
 
 //   return (
-    
 //     <div className="min-h-screen mt-[200px] bg-gray-50 flex">
 //       <AdminSidebar />
 //       <div className="flex-1 md:ml-64 p-6">
@@ -544,10 +546,13 @@
 //                       {imageFiles.map((image, index) => (
 //                         <div key={index} className="relative group">
 //                           <div className="aspect-w-1 aspect-h-1 overflow-hidden rounded-lg bg-gray-100">
-//                             <img
+//                             <Image
 //                               src={image.preview}
 //                               alt={`Preview ${index}`}
-//                               className="w-full h-full object-cover object-center"
+//                               width={100}
+//                               height={100}
+//                               style={{ objectFit: 'cover' }}
+//                               className="w-full h-full"
 //                             />
 //                           </div>
 //                           <button
@@ -570,10 +575,13 @@
 //                       {editingProduct.images.map((url, index) => (
 //                         <div key={index} className="relative group">
 //                           <div className="aspect-w-1 aspect-h-1 overflow-hidden rounded-lg bg-gray-100">
-//                             <img
+//                             <Image
 //                               src={url}
 //                               alt={`Existing ${index}`}
-//                               className="w-full h-full object-cover object-center"
+//                               width={100}
+//                               height={100}
+//                               style={{ objectFit: 'cover' }}
+//                               className="w-full h-full"
 //                             />
 //                           </div>
 //                         </div>
@@ -675,10 +683,13 @@
 //                             <div className="flex items-center">
 //                               <div className="flex-shrink-0 h-14 w-14 bg-gray-100 rounded-md overflow-hidden">
 //                                 {product.images.length > 0 ? (
-//                                   <img 
-//                                     src={product.images[0]} 
-//                                     alt={product.name} 
-//                                     className="h-full w-full object-cover"
+//                                   <Image
+//                                     src={product.images[0]}
+//                                     alt={product.name}
+//                                     width={56}
+//                                     height={56}
+//                                     style={{ objectFit: 'cover' }}
+//                                     className="w-full h-full"
 //                                   />
 //                                 ) : (
 //                                   <div className="h-full w-full flex items-center justify-center text-gray-400">
@@ -799,6 +810,7 @@ interface Product {
   discount: number | null;
   images: string[];
   createdAt: string;
+  status?: 'in_stock' | 'out_of_stock';
 }
 
 interface Category {
@@ -828,6 +840,7 @@ const ProductsPage = () => {
   const [selectedCollection, setSelectedCollection] = useState('');
   const [price, setPrice] = useState('');
   const [discount, setDiscount] = useState('');
+  const [status, setStatus] = useState<'in_stock' | 'out_of_stock'>('in_stock');
   const [imageFiles, setImageFiles] = useState<ImageFile[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [error, setError] = useState('');
@@ -960,6 +973,7 @@ const ProductsPage = () => {
       formData.append('collection', selectedCollection || '');
       formData.append('price', price);
       formData.append('discount', discount.trim() || '');
+      formData.append('status', status);
       if (editingProduct) {
         formData.append('id', editingProduct._id);
       }
@@ -992,6 +1006,7 @@ const ProductsPage = () => {
                     price: parseFloat(price),
                     discount: discount ? parseFloat(discount) : null,
                     images: data.product.images,
+                    status,
                   }
                 : prod
             )
@@ -999,7 +1014,7 @@ const ProductsPage = () => {
           setEditingProduct(null);
         } else {
           setSuccess('Thêm sản phẩm thành công');
-          setProducts([...products, data.product]);
+          setProducts([...products, { ...data.product, status: data.product.status || 'in_stock' }]);
         }
         resetForm();
         setShowForm(false);
@@ -1021,10 +1036,43 @@ const ProductsPage = () => {
     setSelectedCollection(product.collection === 'Không có bộ sưu tập' ? '' : product.collection);
     setPrice(product.price.toString());
     setDiscount(product.discount ? product.discount.toString() : '');
+    setStatus(product.status || 'in_stock');
     setImageFiles([]);
     setShowForm(true);
-    // Scroll to form
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleToggleStatus = async (id: string, newStatus: 'in_stock' | 'out_of_stock') => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Vui lòng đăng nhập lại');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/products', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id, status: newStatus }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setSuccess('Cập nhật trạng thái sản phẩm thành công');
+        setProducts(
+          products.map((prod) =>
+            prod._id === id ? { ...prod, status: newStatus } : prod
+          )
+        );
+      } else {
+        setError(data.message || 'Không thể cập nhật trạng thái sản phẩm');
+      }
+    } catch {
+      setError('Đã xảy ra lỗi khi cập nhật trạng thái sản phẩm');
+    }
   };
 
   const resetForm = () => {
@@ -1035,6 +1083,7 @@ const ProductsPage = () => {
     setSelectedCollection('');
     setPrice('');
     setDiscount('');
+    setStatus('in_stock');
     setImageFiles([]);
     setEditingProduct(null);
   };
@@ -1075,18 +1124,15 @@ const ProductsPage = () => {
     }
   };
 
-  // Format price to VND
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   };
 
-  // Truncate description
   const truncateDescription = (text: string, maxLength: number) => {
     if (text.length <= maxLength) return text;
     return text.slice(0, maxLength) + '...';
   };
 
-  // Calculate discount percentage
   const calculateDiscountPercentage = (price: number, discount: number | null) => {
     if (!discount || discount >= price) return null;
     return Math.round(((price - discount) / price) * 100);
@@ -1120,7 +1166,6 @@ const ProductsPage = () => {
             </button>
           </div>
 
-          {/* Error/Success Messages */}
           {error && (
             <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-md animate-fadeIn">
               <div className="flex items-center">
@@ -1143,7 +1188,6 @@ const ProductsPage = () => {
             </div>
           )}
 
-          {/* Product Form */}
           {showForm && (
             <div className="bg-white p-6 rounded-lg shadow-md mb-8 animate-slideDown">
               <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
@@ -1272,6 +1316,18 @@ const ProductsPage = () => {
                     )}
                   </div>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Trạng Thái <span className="text-red-500">*</span></label>
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value as 'in_stock' | 'out_of_stock')}
+                    className="w-full border border-gray-300 rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                  >
+                    <option value="in_stock">Còn hàng</option>
+                    <option value="out_of_stock">Hết hàng</option>
+                  </select>
+                </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1390,7 +1446,6 @@ const ProductsPage = () => {
             </div>
           )}
           
-          {/* Products List */}
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
               <h2 className="text-xl font-semibold text-gray-800 flex items-center">
@@ -1441,6 +1496,9 @@ const ProductsPage = () => {
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Giá
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Trạng Thái
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Ngày tạo
@@ -1521,6 +1579,30 @@ const ProductsPage = () => {
                                 </span>
                               </div>
                             )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span
+                              className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                product.status === 'out_of_stock' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                              }`}
+                            >
+                              {product.status === 'out_of_stock' ? 'Hết hàng' : 'Còn hàng'}
+                            </span>
+                            <button
+                              onClick={() => handleToggleStatus(product._id, product.status === 'in_stock' ? 'out_of_stock' : 'in_stock')}
+                              className="ml-2 text-blue-600 hover:text-blue-900 focus:outline-none focus:underline flex items-center"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4 mr-1"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                              </svg>
+                              Chuyển trạng thái
+                            </button>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {new Date(product.createdAt).toLocaleDateString('vi-VN', {

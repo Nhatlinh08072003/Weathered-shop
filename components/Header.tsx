@@ -317,7 +317,11 @@ const Header = () => {
   }, [visibleSubmenu, isUserDropdownOpen, isCartDropdownOpen, searchOpen]);
 
   const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+    const willOpen = !isMenuOpen;
+    if (willOpen) {
+      window.scrollTo(0, 0); // Scroll về top khi mở menu để header hiển thị đầy đủ ở đầu trang
+    }
+    setIsMenuOpen(willOpen);
     if (searchOpen) setSearchOpen(false);
     if (isAuthModalOpen) setIsAuthModalOpen(false);
     if (isUserDropdownOpen) setIsUserDropdownOpen(false);
@@ -329,7 +333,11 @@ const Header = () => {
   };
 
   const toggleSearch = () => {
-    setSearchOpen(!searchOpen);
+    const willOpen = !searchOpen;
+    if (willOpen) {
+      window.scrollTo(0, 0); // Scroll về top khi mở search
+    }
+    setSearchOpen(willOpen);
     if (isMenuOpen) setIsMenuOpen(false);
     if (isAuthModalOpen) setIsAuthModalOpen(false);
     if (isUserDropdownOpen) setIsUserDropdownOpen(false);
@@ -337,7 +345,11 @@ const Header = () => {
   };
 
   const toggleCartDropdown = () => {
-    setIsCartDropdownOpen(!isCartDropdownOpen);
+    const willOpen = !isCartDropdownOpen;
+    if (willOpen) {
+      window.scrollTo(0, 0); // Scroll về top khi mở cart (nhất quán)
+    }
+    setIsCartDropdownOpen(willOpen);
     if (searchOpen) setSearchOpen(false);
     if (isMenuOpen) setIsMenuOpen(false);
     if (isAuthModalOpen) setIsAuthModalOpen(false);
@@ -356,7 +368,11 @@ const Header = () => {
   };
 
   const toggleAuthModal = () => {
-    setIsAuthModalOpen(!isAuthModalOpen);
+    const willOpen = !isAuthModalOpen;
+    if (willOpen) {
+      window.scrollTo(0, 0); // Scroll về top khi mở modal login/register để header hiển thị đầy đủ ở đầu trang
+    }
+    setIsAuthModalOpen(willOpen);
     setError("");
     setFormData({ email: "", password: "", confirmPassword: "" });
     if (searchOpen) setSearchOpen(false);
@@ -801,26 +817,6 @@ const Header = () => {
               >
                 <Search size={20} className="transition-transform duration-300" />
               </button>
-              {/* <button
-                className="text-gray-700 hover:text-black transition-all duration-300 transform hover:scale-105 p-2"
-                aria-label="Account"
-                onClick={() => {
-                  console.log("User clicked");
-                  user ? toggleUserDropdown() : toggleAuthModal();
-                }}
-              >
-                <User size={20} className="transition-transform duration-300" />
-              </button> */}
-              <button
-  className="text-gray-700 hover:text-black transition-all duration-300 transform hover:scale-105 p-2"
-  aria-label="Search"
-  onClick={() => {
-    console.log("Search clicked");
-    toggleSearch();
-  }}
->
-  <Search size={20} className="transition-transform duration-300" />
-</button>
               <div className="relative">
                 <button
                   className="text-gray-700 hover:text-black transition-all duration-300 transform hover:scale-105 p-2"
